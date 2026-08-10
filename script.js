@@ -228,6 +228,7 @@
             this.intervalId = setInterval(() => {
                 this.elapsed = (Date.now() - this.startTime) / 1000;
                 this.updateDisplay();
+                this.updateButtons(); // Enable "Done" button as soon as elapsed > 0
                 PracticeHistory.refresh(); // Live update practice history
             }, 100);
 

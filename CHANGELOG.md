@@ -1,5 +1,34 @@
 # Changelog
 
+## Version 1.2.2 - "Done" Button UX Fix (2026-08-10)
+
+### 🐛 Bug Fix
+
+**Fixed: "Done" Button Not Enabling While Timer Runs**
+- **Problem**: After clicking "Start", the "Done" button remained disabled even though time was accumulating
+- **Expected**: "Done" button should become enabled as soon as `elapsed > 0`, regardless of running/paused state
+- **Root Cause**: `updateButtons()` was only called on Start/Pause/Done actions, not during the running interval
+- **Solution**: Added `updateButtons()` call inside the 100ms timer interval
+
+**Technical Details**:
+```javascript
+// Now updates button states every 100ms while running
+this.intervalId = setInterval(() => {
+    this.elapsed = (Date.now() - this.startTime) / 1000;
+    this.updateDisplay();
+    this.updateButtons(); // NEW: Enable "Done" as soon as elapsed > 0
+    PracticeHistory.refresh();
+}, 100);
+```
+
+**Benefits**:
+- ✅ "Done" button becomes clickable within 100ms of starting
+- ✅ Can click "Done" directly from running state (no need to pause first)
+- ✅ More intuitive workflow: Start → Practice → Done (skip pause step)
+- ✅ Button state always reflects actual timer state
+
+---
+
 ## Version 1.2.1 - iOS Safe Area Support (2026-08-10)
 
 ### 📱 Mobile Improvements
