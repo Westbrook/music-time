@@ -1,5 +1,47 @@
 # Changelog
 
+## Version 1.5.4 - Button Height Normalization (2026-08-10)
+
+### 📏 **Consistent Button Heights**
+
+Fixed button height inconsistencies that caused UI shifts when switching between button states.
+
+**Problem**:
+- `.btn-primary`, `.btn-success`: `border: none` (implicit 0px)
+- `.btn-secondary`: `border: 1px solid`
+- `.btn-danger`: `border: 1.5px solid`
+
+**Result**: Different total heights caused layout shift when buttons changed.
+
+**Solution**:
+```css
+/* All buttons now use consistent border */
+.btn {
+  border: 1px solid transparent;  /* Base */
+  box-sizing: border-box;
+}
+
+.btn-primary { /* Inherits 1px transparent */ }
+.btn-secondary { border-color: rgba(...); }  /* Changes color only */
+.btn-danger { border-color: var(--danger-color); }  /* Changes color only */
+.btn-success { /* Inherits 1px transparent */ }
+```
+
+**Benefits**:
+- ✅ All buttons now exactly same height
+- ✅ No UI shift when switching states
+- ✅ Consistent box model with `box-sizing: border-box`
+- ✅ Cleaner CSS (use `border-color` instead of redefining `border`)
+
+**Box Model**:
+```
+Total Height = padding + border + content
+             = 0.875rem + 1px + font-size + 0.875rem
+             = Same for all buttons ✅
+```
+
+---
+
 ## Version 1.5.3 - Border Radius Consistency (2026-08-10)
 
 ### 🔄 **Systematic Border Radius Application**
