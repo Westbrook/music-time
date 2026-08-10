@@ -158,6 +158,22 @@ Stats:  [Progress rings matching timer style] ⭕🔵
 
 ---
 
+### 📐 ### 📱 **Responsive Layout**
+
+**Desktop/Tablet** (>768px):
+- Stats displayed side-by-side
+- `grid-template-columns: repeat(2, 1fr)`
+- Equal width columns
+- Optimal use of horizontal space
+
+**Mobile** (≤768px):
+- Stats stack vertically
+- `grid-template-columns: 1fr`
+- Full-width rings
+- Easy thumb access
+
+---
+
 ### 📐 **Ring Specifications**
 
 **Timer Rings**:
