@@ -30,11 +30,28 @@ min-height: 180px;
 .bpm-container,
 .tone-display {
   min-height: 200px;
+  box-sizing: border-box; /* Includes padding/border in height */
   display: flex;
   justify-content: center;
   align-items: center;
 }
 ```
+
+**Timer Ring Sizing**:
+```css
+.timer-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  width: calc(100% - 4rem);  /* Accounts for padding */
+  height: calc(100% - 4rem);
+  max-width: 160px;
+  max-height: 160px;
+}
+```
+
+**Key Fix**: Added `box-sizing: border-box` to all focal displays so that `min-height: 200px` includes padding and border, ensuring true height normalization.
 
 **Benefits**:
 - ✅ Compact, scannable layout
