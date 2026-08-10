@@ -181,3 +181,46 @@ Inspired by **Impulse Pro Metronome** and modern iOS design principles, this upd
 
 **Result**: A refined, professional practice timer that feels native to iOS while maintaining its own friendly, musician-focused identity.
 
+---
+
+## Dark Mode Support (Version 1.3.1)
+
+### Automatic Theme Switching
+
+**Implementation**: CSS `@media (prefers-color-scheme: dark)`
+- No manual toggle required
+- Respects user's OS/browser preference
+- Instant switching on preference change
+
+### Dark Mode Color System
+
+| Element | Light Mode | Dark Mode |
+|---------|------------|-----------|
+| **Background** | #f2f2f7 (light gray) | #000000 (pure black) |
+| **Cards** | #ffffff (white) | #1c1c1e (dark gray) |
+| **Text** | #000000 (black) | #ffffff (white) |
+| **Primary** | #007aff | #0a84ff (brighter) |
+| **Success** | #34c759 | #32d74b (brighter) |
+| **Borders** | rgba(0,0,0,0.04) | rgba(255,255,255,0.1) |
+
+### Key Adjustments
+
+**Enhanced Visibility**:
+- Brighter colors on dark backgrounds
+- Stronger shadows (0.3/0.5/0.7 opacity)
+- White border overlays for definition
+
+**iOS Consistency**:
+- Matches iOS system dark mode colors
+- Dynamic theme-color meta tag
+- Proper status bar integration
+
+**Accessibility**:
+- WCAG AA contrast maintained
+- Better low-light ergonomics
+- Reduced eye strain for night practice
+
+### Testing
+
+Toggle your OS dark mode to see instant switching - no refresh needed!
+

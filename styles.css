@@ -95,8 +95,19 @@ main {
     border-radius: var(--radius-lg);
     padding: 2rem;
     box-shadow: var(--shadow);
-    border: 1px solid rgba(0, 0, 0, 0.04);
     transition: box-shadow 0.2s ease;
+}
+
+@media (prefers-color-scheme: light) {
+    .card {
+        border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .card {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
 }
 
 .card:hover {
@@ -185,12 +196,10 @@ main {
 .btn-primary {
     background: var(--primary-color);
     color: white;
-    box-shadow: 0 1px 3px rgba(0, 122, 255, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
     background: var(--primary-dark);
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
 }
 
 .btn-secondary {
@@ -206,11 +215,44 @@ main {
 .btn-success {
     background: var(--success-color);
     color: white;
-    box-shadow: 0 1px 3px rgba(52, 199, 89, 0.3);
 }
 
-.btn-success:hover:not(:disabled) {
-    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.4);
+/* Light mode button shadows */
+@media (prefers-color-scheme: light) {
+    .btn-primary {
+        box-shadow: 0 1px 3px rgba(0, 122, 255, 0.3);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+    }
+
+    .btn-success {
+        box-shadow: 0 1px 3px rgba(52, 199, 89, 0.3);
+    }
+
+    .btn-success:hover:not(:disabled) {
+        box-shadow: 0 4px 12px rgba(52, 199, 89, 0.4);
+    }
+}
+
+/* Dark mode button shadows */
+@media (prefers-color-scheme: dark) {
+    .btn-primary {
+        box-shadow: 0 1px 3px rgba(10, 132, 255, 0.5);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        box-shadow: 0 4px 12px rgba(10, 132, 255, 0.6);
+    }
+
+    .btn-success {
+        box-shadow: 0 1px 3px rgba(50, 215, 75, 0.5);
+    }
+
+    .btn-success:hover:not(:disabled) {
+        box-shadow: 0 4px 12px rgba(50, 215, 75, 0.6);
+    }
 }
 
 /* History Section */
@@ -268,12 +310,27 @@ main {
     background: var(--bg-color);
     border-radius: var(--radius-sm);
     font-size: 0.9375rem;
-    border: 1px solid rgba(0, 0, 0, 0.04);
     transition: background 0.15s;
 }
 
-.daily-item:hover {
-    background: rgba(0, 0, 0, 0.02);
+@media (prefers-color-scheme: light) {
+    .daily-item {
+        border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .daily-item:hover {
+        background: rgba(0, 0, 0, 0.02);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .daily-item {
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .daily-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
 }
 
 .daily-date {
@@ -375,13 +432,27 @@ select {
     font-size: 1rem;
     transition: all 0.15s;
     background: var(--card-bg);
+    color: var(--text-color);
 }
 
 input[type="number"]:focus,
 select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+@media (prefers-color-scheme: light) {
+    input[type="number"]:focus,
+    select:focus {
+        box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    input[type="number"]:focus,
+    select:focus {
+        box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
+    }
 }
 
 .beat-indicator {
@@ -398,19 +469,42 @@ select:focus {
     border-radius: 50%;
     background: var(--border-color);
     transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.beat-dot.active {
-    background: var(--primary-color);
-    transform: scale(1.4);
-    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
+@media (prefers-color-scheme: light) {
+    .beat-dot {
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .beat-dot.active {
+        background: var(--primary-color);
+        transform: scale(1.4);
+        box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
+    }
+
+    .beat-dot.accent {
+        background: var(--success-color);
+        transform: scale(1.6);
+        box-shadow: 0 3px 12px rgba(52, 199, 89, 0.5);
+    }
 }
 
-.beat-dot.accent {
-    background: var(--success-color);
-    transform: scale(1.6);
-    box-shadow: 0 3px 12px rgba(52, 199, 89, 0.5);
+@media (prefers-color-scheme: dark) {
+    .beat-dot {
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .beat-dot.active {
+        background: var(--primary-color);
+        transform: scale(1.4);
+        box-shadow: 0 2px 8px rgba(10, 132, 255, 0.6);
+    }
+
+    .beat-dot.accent {
+        background: var(--success-color);
+        transform: scale(1.6);
+        box-shadow: 0 3px 12px rgba(50, 215, 75, 0.7);
+    }
 }
 
 /* Tuner Section */

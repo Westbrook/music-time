@@ -1,5 +1,109 @@
 # Changelog
 
+## Version 1.3.1 - Automatic Dark Mode Support (2026-08-10)
+
+### 🌓 Dark Mode Implementation
+
+**Added automatic dark mode** that respects the user's system preference with no manual toggle required.
+
+**How It Works**:
+- Uses CSS `@media (prefers-color-scheme: dark)` to detect system preference
+- Automatically switches colors, shadows, and borders
+- Updates browser theme color meta tag based on mode
+- Zero JavaScript - pure CSS solution
+
+### Dark Mode Color Palette
+
+**iOS Dark Mode Colors**:
+```css
+--primary-color: #0a84ff      /* Brighter blue for dark backgrounds */
+--success-color: #32d74b      /* Brighter green */
+--danger-color: #ff453a       /* Brighter red */
+--bg-color: #000000           /* Pure black background */
+--card-bg: #1c1c1e            /* Dark gray cards */
+--text-color: #ffffff         /* White text */
+--text-secondary: #98989d     /* Light gray secondary */
+--border-color: #38383a       /* Dark borders */
+```
+
+**Enhanced Shadows**:
+- Stronger opacity (0.3/0.5/0.7 vs 0.05/0.08/0.12)
+- More pronounced depth in dark environments
+
+### Component Adjustments
+
+**Buttons**:
+- ✅ Brighter shadow glows in dark mode
+- ✅ Primary blue: #0a84ff (more visible on dark)
+- ✅ Success green: #32d74b (brighter)
+
+**Cards**:
+- ✅ White border overlay (rgba(255,255,255,0.1))
+- ✅ Stronger shadows for depth
+
+**Inputs & Selects**:
+- ✅ Dark background with light text
+- ✅ Brighter focus rings
+- ✅ Enhanced contrast
+
+**Beat Indicators**:
+- ✅ Stronger colored glows when active
+- ✅ Better visibility on dark background
+
+**Daily Items**:
+- ✅ Subtle white border in dark mode
+- ✅ Lighter hover state (white overlay)
+
+### Meta Tags
+
+**Dynamic Theme Color**:
+```html
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+```
+
+**Benefits**:
+- iOS status bar matches app background
+- System UI integrates seamlessly
+- Proper contrast in both modes
+
+### Technical Implementation
+
+**No Toggle Required**:
+- Respects OS/browser preference automatically
+- Users already have dark mode settings in their OS
+- Reduces UI complexity
+
+**Performance**:
+- Pure CSS solution (no JavaScript)
+- Instant switching on preference change
+- No flash of wrong theme
+
+**Accessibility**:
+- WCAG AA contrast maintained in both modes
+- Better eye comfort in low-light environments
+- Reduced eye strain during night practice
+
+### Testing Dark Mode
+
+**On macOS**:
+- System Settings → Appearance → Dark
+
+**On iOS**:
+- Settings → Display & Brightness → Dark
+
+**On Windows**:
+- Settings → Personalization → Colors → Dark
+
+**Browser DevTools**:
+- Chrome: DevTools → Rendering → Emulate CSS media feature `prefers-color-scheme`
+- Firefox: DevTools → Settings → Enable dark mode
+
+**Instant Update**: No page refresh needed when switching modes!
+
+---
+
 ## Version 1.3.0 - iOS-Inspired Design Refinement (2026-08-10)
 
 ### 🎨 Complete Aesthetic Overhaul
