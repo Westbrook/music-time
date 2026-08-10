@@ -14,14 +14,34 @@
 <body>
     <div class="container">
         <header>
-            <h1>🎺 Trombone Practice Timer</h1>
+            <div class="app-icon">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="60" height="60" rx="13" fill="url(#iconGradient)"/>
+                    <path d="M15 25 L20 25 L35 15 L45 15 L45 45 L35 45 L20 35 L15 35 Z" fill="white" opacity="0.95"/>
+                    <circle cx="42" cy="30" r="3" fill="white" opacity="0.9"/>
+                    <defs>
+                        <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#007aff;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#0051d5;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <h1>Trombone Practice Timer</h1>
+            <p class="app-subtitle">Professional Practice Companion</p>
         </header>
 
         <main>
             <!-- Practice Stopwatch Section -->
             <section class="card stopwatch-section">
                 <h2>Practice Timer</h2>
-                <div class="stopwatch-display" id="stopwatchDisplay">00:00:00</div>
+                <div class="timer-container">
+                    <svg class="timer-ring" viewBox="0 0 200 200">
+                        <circle class="timer-ring-bg" cx="100" cy="100" r="85" />
+                        <circle class="timer-ring-progress" cx="100" cy="100" r="85" id="timerRing" />
+                    </svg>
+                    <div class="stopwatch-display" id="stopwatchDisplay">00:00:00</div>
+                </div>
                 <div class="controls">
                     <button id="startBtn" class="btn btn-primary">Start</button>
                     <button id="pauseBtn" class="btn btn-secondary" disabled>Pause</button>
@@ -53,8 +73,10 @@
             <section class="card metronome-section">
                 <h2>Metronome</h2>
                 <div class="metronome-controls">
-                    <div class="bpm-display" id="bpmDisplay">120</div>
-                    <div class="bpm-label">BPM</div>
+                    <div class="bpm-container">
+                        <div class="bpm-display" id="bpmDisplay">120</div>
+                        <div class="bpm-label">BPM</div>
+                    </div>
                     <div class="input-group">
                         <label for="bpmSlider">Tempo:</label>
                         <input type="range" id="bpmSlider" min="40" max="240" value="120" step="1">

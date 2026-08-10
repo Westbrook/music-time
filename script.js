@@ -278,6 +278,18 @@
 
         updateDisplay() {
             this.display.textContent = formatDuration(this.elapsed);
+            this.updateRing();
+        },
+
+        updateRing() {
+            const ring = document.getElementById('timerRing');
+            if (!ring) return;
+
+            // Animate ring based on elapsed seconds (full circle every 60 seconds)
+            const seconds = this.elapsed % 60;
+            const circumference = 534; // 2 * PI * 85
+            const offset = circumference - (seconds / 60) * circumference;
+            ring.style.strokeDashoffset = offset;
         },
 
         updateButtons() {
