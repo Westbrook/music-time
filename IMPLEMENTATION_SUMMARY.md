@@ -12,23 +12,27 @@ All core requirements and technical specifications have been implemented.
 - [x] Persistent completed practice duration (localStorage)
 - [x] Session recovery on page refresh/reload
 - [x] beforeunload event handler prevents accidental data loss
+- [x] **NEW**: Periodic auto-save every 5 seconds while running
+- [x] **NEW**: Live updates to practice history while timer runs
 
-**Implementation**: `Stopwatch` module in `script.js` (lines 152-253)
+**Implementation**: `Stopwatch` module in `script.js`
 
 ### ✅ Local Practice History
 - [x] Browser localStorage (no server required)
 - [x] Daily totals by user's locale/timezone
 - [x] Days defined from local midnight (00:00:00)
 - [x] Current day's total display
+- [x] **NEW**: Live updates - today's total includes active timer
+- [x] **NEW**: Active session integrated into all history displays
 - [x] Rolling 7-day history
 - [x] Weekly total calculation
 - [x] Auto-expiration of records older than 7 days
 - [x] Versioned storage format (version 1)
 - [x] Resilient to malformed/missing records
 
-**Implementation**: 
-- `StorageManager` module (lines 89-148)
-- `PracticeHistory` module (lines 255-317)
+**Implementation**:
+- `StorageManager` module
+- `PracticeHistory` module
 - Storage key: `trombonePracticeData`
 
 ### ✅ Metronome
@@ -37,18 +41,22 @@ All core requirements and technical specifications have been implemented.
 - [x] BPM input via numeric text input
 - [x] Synchronized slider/input controls
 - [x] BPM validation and constraint (40-240)
+- [x] **NEW**: Volume control (0-100%) with live adjustment
+- [x] **NEW**: Crisp, percussive tones with sharp attack
 - [x] Audible accent on first beat
 - [x] Configurable beats per measure (1-16)
 - [x] Stable timing using precise audio scheduling
 - [x] Structured for future features (tones, meters, subdivisions, polymeter)
 
-**Implementation**: `Metronome` module (lines 319-477)
+**Implementation**: `Metronome` module
 
 **Technical Details**:
 - Schedule-ahead time: 100ms
 - Lookahead interval: 25ms
-- Accent tone: 880 Hz (A5)
-- Regular beat: 440 Hz (A4)
+- **NEW**: Accent tone: 1200 Hz square wave
+- **NEW**: Regular beat: 800 Hz square wave
+- **NEW**: Attack time: 0.5ms for crisp sound
+- **NEW**: Volume-controlled gain envelope
 - Visual beat indicators synchronized to audio
 
 ### ✅ Tuning Tone Generator

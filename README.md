@@ -5,13 +5,17 @@ A fully-featured, locally-hostable practice timer designed for trombone players 
 ## Features
 
 ### ⏱️ Practice Stopwatch
+
 - Start, pause, resume, and reset controls
 - Clear stopwatch-style display (HH:MM:SS)
 - Automatic session persistence—survive page refreshes without losing your practice time
 - Completed sessions are saved to local storage when stopped or reset
 
 ### 📊 Local Practice History
+
 - Track daily practice totals using browser local storage
+- **Live updates**: Today's total updates in real-time as you practice
+- **Active session included**: Running timer adds to daily totals automatically
 - Rolling 7-day history with daily breakdown
 - Weekly total calculation
 - Days defined by local midnight (handles timezone and DST transitions)
@@ -19,7 +23,10 @@ A fully-featured, locally-hostable practice timer designed for trombone players 
 - No server, no account, no tracking—all data stays on your device
 
 ### 🎵 Metronome
+
 - Accurate Web Audio API-based timing (not relying on `setInterval` alone)
+- **Crisp, percussive tones** with sharp attack for clear timing
+- **Volume control** (0-100%) for comfortable practice levels
 - BPM range: 40–240
 - Synchronized slider and numeric input
 - Configurable beats per measure (1–16)
@@ -28,6 +35,7 @@ A fully-featured, locally-hostable practice timer designed for trombone players 
 - Designed to support future features: multiple tones, custom meters, subdivisions, polymeter
 
 ### 🎼 Tuning Tone Generator
+
 - Default pitch: F3 (174.61 Hz)
 - Note/octave selection (C2–B5)
 - Adjustable volume
@@ -48,17 +56,14 @@ Graceful degradation: if Web Audio or LocalStorage is unavailable, warnings are 
 ### Running Locally
 
 1. **Clone or download** this repository
-2. **Open `index.html`** in your browser:
-   - Double-click the file, or
-   - Drag it into a browser window, or
-   - Serve it with a local web server (optional but recommended):
-     ```bash
-     # Python 3
-     python -m http.server 8000
+2. **Open **`index.html` in your browser:
+  - Double-click the file, or
+  - Drag it into a browser window, or
+  - Serve it with a local web server (optional but recommended):`# Python 3
+python -m http.server 8000
 
-     # Node.js (with npx)
-     npx serve .
-     ```
+# Node.js (with npx)
+npx serve .`
 3. **Start practicing!**
 
 No installation, no dependencies, no internet connection required after loading.
@@ -72,6 +77,7 @@ No installation, no dependencies, no internet connection required after loading.
 ## Technical Details
 
 ### Storage Behavior
+
 - Practice data is stored in `localStorage` under the key `trombonePracticeData`
 - Storage format is versioned (current version: 1)
 - Records older than 7 days are automatically expired
@@ -79,22 +85,29 @@ No installation, no dependencies, no internet connection required after loading.
 - Active sessions are persisted before page unload to prevent accidental data loss
 
 ### Date & Time Handling
+
 - Days begin at local midnight (`00:00:00`) in the user's current timezone
 - Timezone changes and DST transitions are handled by browser `Date` APIs
 - Weekly total = sum of the last 7 calendar days including today
 
 ### Metronome Timing
+
 - Uses Web Audio API's precise scheduling (not `setInterval` for audio)
 - Audio scheduled slightly ahead (100ms) using a 25ms lookahead interval
 - Visual indicators update via `setTimeout` synchronized to audio schedule
+- Crisp attack using square wave oscillator with 0.5ms rise time
+- Higher frequencies (800Hz/1200Hz) for percussive clarity
+- Volume-controlled gain envelope
 
 ### Tuning Tone
+
 - Frequencies based on equal temperament, A4 = 440 Hz
 - Sine wave oscillator
 - Gain ramped over 15ms on start/stop to avoid clicks
 - Volume control adjusts gain from 0–30% of full scale
 
 ### Accessibility
+
 - Semantic HTML with ARIA where appropriate
 - Keyboard accessible controls
 - Visible focus states
@@ -102,6 +115,7 @@ No installation, no dependencies, no internet connection required after loading.
 - Respects `prefers-reduced-motion` media query
 
 ### Performance & Offline
+
 - Lightweight (no external dependencies)
 - Fully functional offline after initial load
 - Properly cleans up audio nodes, timers, and event listeners
@@ -118,12 +132,14 @@ No installation, no dependencies, no internet connection required after loading.
 ## Future Enhancements (Structured for Extension)
 
 The metronome is architected to support:
+
 - Multiple tone options (click, woodblock, beep, etc.)
 - Custom time signatures and meters
 - Subdivisions (eighth notes, triplets, etc.)
 - Polymeter support
 
 The codebase is modular and can be extended with:
+
 - CSV/JSON export of practice history
 - Practice goals and reminders
 - Additional tuning reference tones
@@ -132,7 +148,5 @@ The codebase is modular and can be extended with:
 ## License
 
 This project is provided as-is for personal and educational use.
-
----
 
 **Happy practicing! 🎺🎵**

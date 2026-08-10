@@ -194,6 +194,13 @@
                 }
             });
 
+            // Periodic save while running (every 5 seconds)
+            setInterval(() => {
+                if (this.running) {
+                    StorageManager.saveActiveSession(this.elapsed, true);
+                }
+            }, 5000);
+
             this.updateDisplay();
         },
 
@@ -206,9 +213,11 @@
             this.intervalId = setInterval(() => {
                 this.elapsed = (Date.now() - this.startTime) / 1000;
                 this.updateDisplay();
+                PracticeHistory.refresh(); // Live update practice history
             }, 100);
 
             this.updateButtons();
+            PracticeHistory.refresh(); // Update immediately when starting
         },
 
         pause() {
@@ -220,12 +229,12 @@
 
             StorageManager.saveActiveSession(this.elapsed, false);
             this.updateButtons();
+            PracticeHistory.refresh(); // Update when pausing
         },
 
         reset() {
             if (this.elapsed > 0) {
                 StorageManager.addPracticeTime(Math.floor(this.elapsed));
-                PracticeHistory.refresh();
             }
 
             this.elapsed = 0;
@@ -239,6 +248,7 @@
             StorageManager.saveActiveSession(0, false);
             this.updateDisplay();
             this.updateButtons();
+            PracticeHistory.refresh(); // Update when resetting
         },
 
         updateDisplay() {
@@ -249,6 +259,10 @@
             this.startBtn.disabled = this.running;
             this.pauseBtn.disabled = !this.running;
             this.resetBtn.disabled = !this.running && this.elapsed === 0;
+        },
+
+        getCurrentElapsed() {
+            return this.running ? this.elapsed : 0;
         }
     };
 
@@ -273,8 +287,11 @@
             const dailyData = StorageManager.getDailyData();
             const today = getDayKey();
 
-            // Calculate today's total
-            const todaySeconds = dailyData[today] || 0;
+            // Get active session time if timer is running
+            const activeTime = Stopwatch.getCurrentElapsed ? Math.floor(Stopwatch.getCurrentElapsed()) : 0;
+
+            // Calculate today's total (including active session)
+            const todaySeconds = (dailyData[today] || 0) + activeTime;
             this.todayDisplay.textContent = formatDurationShort(todaySeconds);
 
             // Calculate 7-day total and build daily list
@@ -284,7 +301,12 @@
             for (let i = 0; i < DAYS_TO_KEEP; i++) {
                 const date = new Date(Date.now() - (i * 86400000));
                 const dayKey = getDayKey(date);
-                const seconds = dailyData[dayKey] || 0;
+                let seconds = dailyData[dayKey] || 0;
+
+                // Add active time to today's entry
+                if (dayKey === today) {
+                    seconds += activeTime;
+                }
 
                 weekTotal += seconds;
                 last7Days.push({
@@ -330,12 +352,15 @@
         scheduleAheadTime: 0.1,
         lookahead: 25.0,
         timerID: null,
+        volume: 0.7,
         bpmSlider: null,
         bpmInput: null,
         bpmDisplay: null,
         beatsInput: null,
         metronomeBtn: null,
         beatIndicator: null,
+        volumeSlider: null,
+        volumeDisplay: null,
 
         init() {
             this.bpmSlider = document.getElementById('bpmSlider');
@@ -344,6 +369,8 @@
             this.beatsInput = document.getElementById('beatsPerMeasure');
             this.metronomeBtn = document.getElementById('metronomeBtn');
             this.beatIndicator = document.getElementById('beatIndicator');
+            this.volumeSlider = document.getElementById('metronomeVolume');
+            this.volumeDisplay = document.getElementById('metronomeVolumeDisplay');
 
             // Initialize Audio Context on user interaction
             this.metronomeBtn.addEventListener('click', () => {
@@ -373,6 +400,11 @@
                 this.beatsPerMeasure = Math.max(1, Math.min(16, parseInt(e.target.value) || 4));
                 this.beatsInput.value = this.beatsPerMeasure;
                 this.createBeatIndicators();
+            });
+
+            this.volumeSlider.addEventListener('input', (e) => {
+                this.volume = parseInt(e.target.value) / 100;
+                this.volumeDisplay.textContent = `${e.target.value}%`;
             });
 
             this.createBeatIndicators();
@@ -428,14 +460,18 @@
             oscillator.connect(gainNode);
             gainNode.connect(this.audioContext.destination);
 
-            oscillator.frequency.value = isAccent ? 880 : 440;
+            // Higher frequencies for crisper sound
+            oscillator.frequency.value = isAccent ? 1200 : 800;
+            oscillator.type = 'square'; // Square wave for sharper attack
 
+            // Crisp attack: instant peak, then rapid decay
+            const peakVolume = this.volume * (isAccent ? 0.5 : 0.35);
             gainNode.gain.setValueAtTime(0, time);
-            gainNode.gain.linearRampToValueAtTime(0.3, time + 0.001);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
+            gainNode.gain.linearRampToValueAtTime(peakVolume, time + 0.0005); // Very fast attack
+            gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.04); // Quick decay
 
             oscillator.start(time);
-            oscillator.stop(time + 0.05);
+            oscillator.stop(time + 0.04);
 
             // Update visual indicator
             setTimeout(() => {

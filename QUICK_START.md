@@ -35,19 +35,22 @@ php -S localhost:8000
 **Tip**: The timer automatically saves your progress if you refresh the page!
 
 ### 📊 Practice History
-- **Today**: Total practice time for the current day
-- **7-Day Total**: Rolling week total
+- **Today**: Total practice time for the current day (updates live while timer runs!)
+- **7-Day Total**: Rolling week total (includes active session)
 - **Last 7 Days**: Daily breakdown showing your practice consistency
 
 **Note**: All data is stored locally in your browser. No account needed!
+**Tip**: The "Today" total updates in real-time while you practice!
 
 ### 🎵 Metronome
 - **BPM**: Adjust tempo from 40-240 using slider or number input
 - **Beats per Measure**: Set time signature (1-16 beats)
+- **Volume**: Adjustable volume control (0-100%)
 - **Visual Indicator**: Watch the beat dots pulse in sync
 - **Accent**: First beat of each measure has a higher pitch
+- **Crisp Tone**: Sharp attack for clear, percussive timing
 
-**Tip**: The metronome uses Web Audio for precise timing!
+**Tip**: The metronome uses Web Audio for precise timing with crisp, professional-quality tones!
 
 ### 🎼 Tuning Tone
 - **Default**: F3 (174.61 Hz) - common trombone tuning note
