@@ -1,25 +1,27 @@
 # Changelog
 
-## Version 1.5.1 - Normalized Focal Display Heights (2026-08-10)
+## Version 1.5.1 - Compact Normalized Focal Display Heights (2026-08-10)
 
-### 📏 **Perfect Height Normalization**
+### 📏 **Compact Height Normalization**
 
-All four focal displays now have identical heights, creating complete visual harmony.
+All four focal displays now share a compact, consistent height that maximizes information density while maintaining visual harmony.
 
-**Unified Height System**:
+**Unified Compact Height**:
 ```css
 /* Desktop/Tablet */
-min-height: 280px;
+min-height: 200px;
 
 /* Mobile */
-min-height: 240px;
+min-height: 180px;
 ```
 
 **All Four Displays**:
-- ✅ Timer container: `280px`
-- ✅ Stats grid: `280px`
-- ✅ BPM container: `280px`
-- ✅ Tone display: `280px`
+- ✅ Timer container: `200px`
+- ✅ Stats grid: `200px`
+- ✅ BPM container: `200px`
+- ✅ Tone display: `200px`
+
+**Design Philosophy**: Match the original stats card height (~200px) for a more compact, information-dense layout.
 
 **Implementation**:
 ```css
@@ -27,7 +29,7 @@ min-height: 240px;
 .stats-grid,
 .bpm-container,
 .tone-display {
-  min-height: 280px;
+  min-height: 200px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -35,29 +37,28 @@ min-height: 240px;
 ```
 
 **Benefits**:
-- ✅ Perfect visual alignment
-- ✅ Equal visual weight
-- ✅ Scannable layout
+- ✅ Compact, scannable layout
+- ✅ More content visible without scrolling
+- ✅ Equal visual weight across displays
 - ✅ Professional consistency
-- ✅ Predictable structure
+- ✅ Optimal information density
 
-**Before v1.5.1**:
+**Height Evolution**:
 ```
-Timer:  ~280px (fixed height)
-Stats:  ~200px (content-based)
-BPM:    ~160px (compact)
-Tone:   ~180px (medium)
+Original (variable):
+Timer:  ~280px
+Stats:  ~200px ← Target height
+BPM:    ~160px
+Tone:   ~180px
+
+After v1.5.1:
+Timer:  200px ✅
+Stats:  200px ✅
+BPM:    200px ✅
+Tone:   200px ✅
 ```
 
-**After v1.5.1**:
-```
-Timer:  280px ✅
-Stats:  280px ✅
-BPM:    280px ✅
-Tone:   280px ✅
-```
-
-**Visual Result**: All focal displays are now perfectly aligned, with content vertically centered within each container.
+**Visual Result**: Compact, perfectly aligned focal displays with content vertically centered. More content fits on screen while maintaining visual consistency.
 
 ---
 

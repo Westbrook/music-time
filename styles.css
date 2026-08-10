@@ -734,8 +734,9 @@ main {
     position: relative;
     padding: 2rem 1.5rem;
     margin: 0 auto 1.5rem;
+    width: 100%;
     max-width: 280px;
-    min-height: 280px;
+    min-height: 200px;
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     border-radius: var(--radius-lg);
     border: 1px solid transparent;
@@ -1002,7 +1003,7 @@ select:focus {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-color);
     margin-bottom: 1.5rem;
-    min-height: 280px;
+    min-height: 200px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -1062,8 +1063,7 @@ footer {
     }
 
     .timer-container {
-        width: 240px;
-        min-height: 240px;
+        min-height: 180px;
     }
 
     .stopwatch-display {
@@ -1072,7 +1072,7 @@ footer {
 
     .bpm-container {
         padding: 1.5rem;
-        min-height: 240px;
+        min-height: 180px;
     }
 
     .bpm-display {
@@ -1081,7 +1081,7 @@ footer {
 
     .stats-grid,
     .tone-display {
-        min-height: 240px;
+        min-height: 180px;
     }
 
     .card h2 {
