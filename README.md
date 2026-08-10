@@ -116,6 +116,14 @@ No installation, no dependencies, no internet connection required after loading.
 - Sufficient color contrast (WCAG AA)
 - Respects `prefers-reduced-motion` media query
 
+### Mobile & iOS Support
+
+- Fully responsive design (mobile, tablet, desktop)
+- Touch-friendly controls with large tap targets
+- **iOS safe area insets** - Content protected from Dynamic Island, notch, and rounded corners
+- Optimized for home screen installation on iOS
+- Theme color integration with iOS UI
+
 ### Performance & Offline
 
 - Lightweight (no external dependencies)

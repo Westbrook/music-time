@@ -1,5 +1,45 @@
 # Changelog
 
+## Version 1.2.1 - iOS Safe Area Support (2026-08-10)
+
+### 📱 Mobile Improvements
+
+**Added iOS Dynamic Island & Notch Protection**
+- **Problem**: On iPhone 14 Pro and newer, content was hidden behind the Dynamic Island at page load
+- **Solution**: Implemented proper safe area insets using CSS environment variables
+
+**Technical Implementation**:
+```html
+<!-- viewport-fit=cover allows full-screen layout -->
+<meta name="viewport" content="... viewport-fit=cover">
+```
+
+```css
+/* Respects iOS safe areas (notch, Dynamic Island, home indicator) */
+@supports (padding: max(0px)) {
+    body {
+        padding-top: max(1rem, env(safe-area-inset-top));
+        padding-right: max(1rem, env(safe-area-inset-right));
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        padding-left: max(1rem, env(safe-area-inset-left));
+    }
+}
+```
+
+**Additional iOS Meta Tags**:
+- `apple-mobile-web-app-capable` - Enables full-screen mode when added to home screen
+- `apple-mobile-web-app-status-bar-style` - Black translucent status bar for immersive experience
+- `theme-color` - Matches app gradient color for better integration
+
+**Benefits**:
+- ✅ Header never hidden behind Dynamic Island or notch
+- ✅ Content properly inset on all iOS devices (iPhone X and newer)
+- ✅ Works seamlessly on non-iOS devices (safe area = 0)
+- ✅ Better experience when saved to home screen
+- ✅ Proper spacing around rounded corners and home indicator
+
+---
+
 ## Version 1.2.0 - Bug Fixes & UX Improvements (2026-08-10)
 
 ### 🐛 Bug Fixes
