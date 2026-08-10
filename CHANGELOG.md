@@ -1,5 +1,67 @@
 # Changelog
 
+## Version 1.5.3 - Border Radius Consistency (2026-08-10)
+
+### 🔄 **Systematic Border Radius Application**
+
+Fixed inconsistent border radii by ensuring all elements use the defined CSS variables according to the concentric hierarchy.
+
+**Issues Fixed**:
+```css
+/* Before (inconsistent) */
+.btn { border-radius: 20px; }          /* Hardcoded */
+input { border-radius: 12px; }         /* Hardcoded */
+input[type="range"] { border-radius: 3px; } /* Hardcoded */
+
+/* After (systematic) */
+.btn { border-radius: var(--radius-md); }   /* 12px */
+input { border-radius: var(--radius-md); }  /* 12px */
+input[type="range"] { border-radius: var(--radius-xs); } /* 6px */
+```
+
+**Complete Hierarchy Applied**:
+
+**Level 1 - Card Containers** (20px):
+- `.card` → `var(--radius-xl)`
+
+**Level 2 - Focal Displays** (16px):
+- `.timer-container` → `var(--radius-lg)`
+- `.stats-grid` → `var(--radius-lg)`
+- `.bpm-container` → `var(--radius-lg)`
+- `.tone-display` → `var(--radius-lg)`
+
+**Level 3 - Secondary Elements** (12px):
+- `.stat-item` → `var(--radius-md)`
+- `.btn` → `var(--radius-md)` ← Fixed
+- `input[type="number"]` → `var(--radius-md)` ← Fixed
+- `select` → `var(--radius-md)` ← Fixed
+
+**Level 4 - Small Elements** (8px):
+- `.timer-hint` → `var(--radius-sm)`
+- `.beat-indicator` → `var(--radius-sm)`
+
+**Level 5 - Tiny Elements** (6px):
+- `.daily-item` → `var(--radius-xs)`
+- `input[type="range"]` → `var(--radius-xs)` ← Fixed
+
+**Rational Relationships**:
+```
+Card (20px)
+  ├─ Focal Display (16px)
+  │   ├─ Secondary Element (12px)
+  │   │   ├─ Small Element (8px)
+  │   │   │   └─ Tiny Element (6px)
+```
+
+**Benefits**:
+- ✅ No more hardcoded border radii
+- ✅ Consistent visual hierarchy
+- ✅ Easy to maintain/update
+- ✅ Predictable scaling
+- ✅ Concentric harmony
+
+---
+
 ## Version 1.5.2 - Stats Grid Padding Adjustment (2026-08-10)
 
 ### 📦 **Stats Card Compaction**
