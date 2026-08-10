@@ -6,10 +6,12 @@ A fully-featured, locally-hostable practice timer designed for trombone players 
 
 ### ⏱️ Practice Stopwatch
 
-- Start, pause, resume, and reset controls
+- **Start, Pause, Resume, and Done** controls with clear intent
 - Clear stopwatch-style display (HH:MM:SS)
-- Automatic session persistence—survive page refreshes without losing your practice time
-- Completed sessions are saved to local storage when stopped or reset
+- **Automatic session persistence**—survive page refreshes without losing your practice time
+- **Paused sessions restored** on page reload
+- Click "Done" to save your practice session and reset the timer
+- Helpful hints guide you through the workflow
 
 ### 📊 Local Practice History
 
@@ -57,14 +59,14 @@ Graceful degradation: if Web Audio or LocalStorage is unavailable, warnings are 
 
 1. **Clone or download** this repository
 2. **Open **`index.html` in your browser:
-  - Double-click the file, or
-  - Drag it into a browser window, or
-  - Serve it with a local web server (optional but recommended):`# Python 3
-python -m http.server 8000
+
+- Double-click the file, or
+- Drag it into a browser window, or
+- Serve it with a local web server (optional but recommended):`# Python 3python -m http.server 8000
 
 # Node.js (with npx)
-npx serve .`
-3. **Start practicing!**
+
+npx serve .`3. **Start practicing!**
 
 No installation, no dependencies, no internet connection required after loading.
 

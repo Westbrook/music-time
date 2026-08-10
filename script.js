@@ -137,9 +137,10 @@
 
         saveActiveSession(elapsed, running) {
             const data = this.load();
-            data.activeSession = running ? {
+            data.activeSession = elapsed > 0 || running ? {
                 elapsed,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                running: running
             } : null;
             this.save(data);
         },
@@ -167,24 +168,33 @@
         display: null,
         startBtn: null,
         pauseBtn: null,
-        resetBtn: null,
+        doneBtn: null,
 
         init() {
             this.display = document.getElementById('stopwatchDisplay');
             this.startBtn = document.getElementById('startBtn');
             this.pauseBtn = document.getElementById('pauseBtn');
-            this.resetBtn = document.getElementById('resetBtn');
+            this.doneBtn = document.getElementById('doneBtn');
 
             this.startBtn.addEventListener('click', () => this.start());
             this.pauseBtn.addEventListener('click', () => this.pause());
-            this.resetBtn.addEventListener('click', () => this.reset());
+            this.doneBtn.addEventListener('click', () => this.done());
 
             // Restore active session if exists
             const session = StorageManager.getActiveSession();
             if (session) {
                 const timeSinceLastUpdate = (Date.now() - session.timestamp) / 1000;
-                this.elapsed = session.elapsed + timeSinceLastUpdate;
-                this.start();
+                this.elapsed = session.elapsed;
+
+                // If it was running, add elapsed time since last save and auto-resume
+                if (session.running) {
+                    this.elapsed += timeSinceLastUpdate;
+                    this.start();
+                } else {
+                    // If it was paused, just restore the time
+                    this.updateDisplay();
+                    this.updateButtons();
+                }
             }
 
             // Save state before page unload
@@ -227,12 +237,21 @@
             clearInterval(this.intervalId);
             this.intervalId = null;
 
-            StorageManager.saveActiveSession(this.elapsed, false);
+            // Save paused session (running: false)
+            const data = StorageManager.load();
+            data.activeSession = {
+                elapsed: this.elapsed,
+                timestamp: Date.now(),
+                running: false
+            };
+            StorageManager.save(data);
+
             this.updateButtons();
             PracticeHistory.refresh(); // Update when pausing
         },
 
-        reset() {
+        done() {
+            // Save the practice session and reset
             if (this.elapsed > 0) {
                 StorageManager.addPracticeTime(Math.floor(this.elapsed));
             }
@@ -248,7 +267,7 @@
             StorageManager.saveActiveSession(0, false);
             this.updateDisplay();
             this.updateButtons();
-            PracticeHistory.refresh(); // Update when resetting
+            PracticeHistory.refresh(); // Update when done
         },
 
         updateDisplay() {
@@ -258,11 +277,18 @@
         updateButtons() {
             this.startBtn.disabled = this.running;
             this.pauseBtn.disabled = !this.running;
-            this.resetBtn.disabled = !this.running && this.elapsed === 0;
+            this.doneBtn.disabled = this.elapsed === 0;
         },
 
         getCurrentElapsed() {
+            // Return active time only if timer is running
+            // If paused, the elapsed time shouldn't count toward "active" time
             return this.running ? this.elapsed : 0;
+        },
+
+        getPausedElapsed() {
+            // Return elapsed time even if paused (for restoring state)
+            return this.elapsed;
         }
     };
 

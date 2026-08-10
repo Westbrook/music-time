@@ -1,5 +1,60 @@
 # Changelog
 
+## Version 1.2.0 - Bug Fixes & UX Improvements (2026-08-10)
+
+### 🐛 Bug Fixes
+
+**Fixed: 7-Day View Corruption on Page Refresh**
+- **Problem**: When refreshing the page with timer running, the 7-day history would show incorrect values
+- **Root Cause**: Initialization order issue - `PracticeHistory` tried to access `Stopwatch.getCurrentElapsed()` before Stopwatch was fully initialized
+- **Solution**: Added defensive check and improved session restoration logic
+
+**Fixed: Paused Sessions Not Restored**
+- **Problem**: Only running sessions were restored on page refresh; paused sessions lost their time
+- **Root Cause**: Storage only saved sessions when `running === true`, discarded paused state
+- **Solution**: Modified storage to save both running and paused sessions with a `running` flag
+
+### ✨ UX Improvements
+
+**Replaced "Reset" Button with "Done" Button**
+- **Rationale**: "Reset" was confusing - users weren't sure if it saved their practice time
+- **New Flow**:
+  - **Start** → Begin practice session
+  - **Pause** → Temporarily stop (can resume with Start)
+  - **Done** → Save session to history and reset timer to 00:00:00
+- **Benefits**:
+  - Clear intent: "Done" means "I'm finished, save my practice"
+  - Pause/Resume flow is more intuitive
+  - No ambiguity about whether time is saved
+
+**Added Helpful Hint**
+- New tip under timer controls: _"Tip: Click 'Done' to save your practice session"_
+- Subtle, italic styling in secondary color
+- Guides users to the correct workflow
+
+### 🔧 Technical Improvements
+
+**Enhanced Session Storage**
+```javascript
+activeSession: {
+  elapsed: 1234,
+  timestamp: 1723301234000,
+  running: true  // NEW: Track whether session was running or paused
+}
+```
+
+**Improved Restoration Logic**
+- Running sessions: Restore time + add elapsed time since last save, auto-resume
+- Paused sessions: Restore time, stay paused
+- No session: Start fresh at 00:00:00
+
+**Button State Logic**
+- **Start**: Disabled when running
+- **Pause**: Disabled when not running
+- **Done**: Disabled when elapsed === 0 (nothing to save)
+
+---
+
 ## Version 1.1.0 - Enhanced Features (2026-08-10)
 
 ### 🎯 Active Timer Resilience

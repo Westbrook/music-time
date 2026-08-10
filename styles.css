@@ -74,6 +74,14 @@ main {
     font-variant-numeric: tabular-nums;
 }
 
+.timer-hint {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: var(--secondary-color);
+    font-style: italic;
+}
+
 .controls {
     display: flex;
     gap: 0.75rem;
@@ -123,6 +131,11 @@ main {
 
 .btn-danger {
     background: var(--danger-color);
+    color: white;
+}
+
+.btn-success {
+    background: var(--success-color);
     color: white;
 }
 

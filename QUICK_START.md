@@ -3,6 +3,7 @@
 ## Running the Application
 
 ### Option 1: Direct File Open
+
 1. Navigate to the project folder
 2. Double-click `index.html`
 3. Your default browser will open the application
@@ -10,17 +11,21 @@
 ### Option 2: Local Web Server (Recommended)
 
 **Using Python 3:**
+
 ```bash
 python3 -m http.server 8000
 ```
-Then open: http://localhost:8000
+
+Then open: [http://localhost:8000](http://localhost:8000)
 
 **Using Node.js:**
+
 ```bash
 npx serve .
 ```
 
 **Using PHP:**
+
 ```bash
 php -S localhost:8000
 ```
@@ -28,21 +33,25 @@ php -S localhost:8000
 ## Features Overview
 
 ### 🎯 Practice Timer
-- **Start**: Begin timing your practice session
-- **Pause**: Temporarily stop the timer (can be resumed)
-- **Reset**: Stop the timer and save the session to history
 
-**Tip**: The timer automatically saves your progress if you refresh the page!
+- **Start**: Begin timing your practice session
+- **Pause**: Temporarily stop the timer (can be resumed with Start)
+- **Done**: Save your practice session to history and reset to 00:00:00
+
+**Workflow**: Start → Practice → Pause (if needed) → Resume → Done when finished
+
+**Tip**: The timer automatically saves your progress if you refresh the page - even paused sessions!
 
 ### 📊 Practice History
+
 - **Today**: Total practice time for the current day (updates live while timer runs!)
 - **7-Day Total**: Rolling week total (includes active session)
 - **Last 7 Days**: Daily breakdown showing your practice consistency
 
-**Note**: All data is stored locally in your browser. No account needed!
-**Tip**: The "Today" total updates in real-time while you practice!
+**Note**: All data is stored locally in your browser. No account needed!**Tip**: The "Today" total updates in real-time while you practice!
 
 ### 🎵 Metronome
+
 - **BPM**: Adjust tempo from 40-240 using slider or number input
 - **Beats per Measure**: Set time signature (1-16 beats)
 - **Volume**: Adjustable volume control (0-100%)
@@ -53,6 +62,7 @@ php -S localhost:8000
 **Tip**: The metronome uses Web Audio for precise timing with crisp, professional-quality tones!
 
 ### 🎼 Tuning Tone
+
 - **Default**: F3 (174.61 Hz) - common trombone tuning note
 - **Note Selection**: Choose any note from C to B
 - **Octave Selection**: Octaves 2-5 available
@@ -63,12 +73,14 @@ php -S localhost:8000
 ## Browser Requirements
 
 Works best with:
+
 - Chrome 60+
 - Firefox 55+
 - Safari 11+
 - Edge 79+
 
 Requires:
+
 - Web Audio API (for metronome and tone)
 - LocalStorage (for practice history)
 - JavaScript enabled
@@ -76,6 +88,7 @@ Requires:
 ## Keyboard Shortcuts
 
 Most controls are keyboard accessible:
+
 - **Tab**: Navigate between controls
 - **Space/Enter**: Activate buttons
 - **Arrow Keys**: Adjust sliders and number inputs
@@ -83,6 +96,7 @@ Most controls are keyboard accessible:
 ## Mobile Usage
 
 The interface is fully responsive and touch-friendly. All features work on:
+
 - iOS Safari
 - Chrome for Android
 - Firefox Mobile
@@ -90,21 +104,25 @@ The interface is fully responsive and touch-friendly. All features work on:
 ## Troubleshooting
 
 ### No sound from metronome or tone?
+
 - Make sure your device isn't muted
 - Check browser permissions for audio
 - Try clicking the button again (some browsers require user interaction to start audio)
 
 ### Practice history not saving?
+
 - Check if your browser allows localStorage
 - Some private/incognito modes block localStorage
 - Try a different browser or normal (non-private) window
 
 ### Timer doesn't resume after refresh?
+
 - This is expected if you clicked Reset before refreshing
 - Only actively running sessions are auto-restored
 - Data is saved when you click Reset
 
 ### Metronome timing seems off?
+
 - Close other audio-heavy tabs
 - Check CPU usage (high load can affect timing)
 - Try a lower BPM to verify accuracy
@@ -151,10 +169,6 @@ The application is built with vanilla JavaScript, so it's easy to customize:
 3. **Explore the code**: All code is commented and well-structured
 4. **Report issues**: Check the implementation for any edge cases
 
----
-
 **Happy practicing! 🎺**
 
-For detailed documentation, see [README.md](README.md)
-For testing validation, see [TEST_CHECKLIST.md](TEST_CHECKLIST.md)
-
+For detailed documentation, see [README.md](README.md)For testing validation, see [TEST_CHECKLIST.md](TEST_CHECKLIST.md)
