@@ -1,5 +1,184 @@
 # Changelog
 
+## Version 1.4.4 - Concentric Border Radius System & Focal Display Normalization (2026-08-10)
+
+### 🎯 **Complete Focal Display Normalization**
+
+All four primary content displays now share identical visual treatment:
+
+**Timer Container** = **Stats Grid** = **BPM Container** = **Tone Display**
+
+**Unified Specifications**:
+```css
+padding: 2rem 1.5rem;
+margin-bottom: 1.5rem;
+border-radius: var(--radius-lg); /* 16px */
+border: 1px solid var(--border-color);
+```
+
+**Light Mode**:
+```css
+background: white;
+box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+```
+
+**Dark Mode**:
+```css
+background: rgba(255, 255, 255, 0.03);
+border-color: rgba(255, 255, 255, 0.08);
+```
+
+**BPM Container Exception**: Retains gradient background while matching all other properties (padding, margin, radius, border structure).
+
+---
+
+### 🔄 **Concentric Border Radius System**
+
+Implemented a hierarchical radius system where nested elements have progressively smaller radii, creating natural visual harmony.
+
+**The System**:
+```css
+--radius-xl: 20px;  /* Card outer containers */
+--radius-lg: 16px;  /* Focal displays (primary content) */
+--radius-md: 12px;  /* Secondary containers, inputs */
+--radius-sm: 8px;   /* Nested items, small elements */
+--radius-xs: 6px;   /* Inner-most elements */
+```
+
+**Visual Hierarchy**:
+```
+┌─────────────────────────────────┐ 20px (Card)
+│                                 │
+│  ┌───────────────────────────┐  │ 16px (Focal Display)
+│  │                           │  │
+│  │  ┌─────────────────────┐  │  │ 12px (Stat Item)
+│  │  │                     │  │  │
+│  │  │  ┌───────────────┐  │  │  │ 8px (Input)
+│  │  │  │               │  │  │  │
+│  │  │  │  ┌─────────┐  │  │  │  │ 6px (Daily Item)
+│  │  │  │  │         │  │  │  │  │
+│  │  │  │  └─────────┘  │  │  │  │
+│  │  │  └───────────────┘  │  │  │
+│  │  └─────────────────────┘  │  │
+│  └───────────────────────────┘  │
+└─────────────────────────────────┘
+```
+
+**Concentric Principle**: Each nested level steps down 4px, creating smooth visual flow.
+
+---
+
+### 📐 **Applied Across All Elements**
+
+**Level 1 - Card Containers** (20px):
+- `.card` → `var(--radius-xl)`
+
+**Level 2 - Focal Displays** (16px):
+- `.timer-container` → `var(--radius-lg)`
+- `.stats-grid` → `var(--radius-lg)`
+- `.bpm-container` → `var(--radius-lg)`
+- `.tone-display` → `var(--radius-lg)`
+- `.focal-display` → `var(--radius-lg)`
+
+**Level 3 - Secondary Elements** (12px):
+- `.stat-item` → `var(--radius-md)`
+- Input controls → `var(--radius-md)`
+- Select dropdowns → `var(--radius-md)`
+
+**Level 4 - Small Elements** (8px):
+- `.timer-hint` → `var(--radius-sm)`
+- `.beat-indicator` → `var(--radius-sm)`
+- Buttons → `var(--radius-sm)` (pillshape override)
+
+**Level 5 - Inner Elements** (6px):
+- `.daily-item` → `var(--radius-xs)`
+
+---
+
+### ✨ **Visual Benefits**
+
+**Before v1.4.4**:
+```
+Timer:    [custom size, no border, floating]
+Stats:    [12px radius, 0.25rem padding]
+BPM:      [16px radius, 2rem padding, max-width 200px]
+Tone:     [12px radius, 2rem padding]
+
+Mixed radii: 8px, 10px, 12px, 16px (inconsistent)
+```
+
+**After v1.4.4**:
+```
+Timer:    [16px radius, 2rem/1.5rem padding, border, shadow] ✅
+Stats:    [16px radius, 2rem/1.5rem padding, border, shadow] ✅
+BPM:      [16px radius, 2rem/1.5rem padding, border, shadow] ✅
+Tone:     [16px radius, 2rem/1.5rem padding, border, shadow] ✅
+
+Systematic radii: 20px → 16px → 12px → 8px → 6px ✅
+```
+
+---
+
+### 🎨 **Detailed Changes**
+
+**Timer Container**:
+- Added padding: `2rem 1.5rem`
+- Added background/border/shadow (matches other focal displays)
+- Changed radius: `var(--radius-lg)` (16px)
+- Now visually consistent with stats/BPM/tone
+
+**Stats Grid**:
+- Changed radius: `var(--radius-md)` → `var(--radius-lg)` (12px → 16px)
+- Changed padding: `0.25rem` → `0.5rem` (more breathing room)
+- Stat items use `var(--radius-md)` (12px, one step smaller)
+
+**BPM Container**:
+- Changed max-width: `200px` → `280px` (matches timer)
+- Changed padding: `2rem` → `2rem 1.5rem` (matches pattern)
+- Changed margin: `2rem` → `1.5rem` (matches pattern)
+- Added border: `1px solid transparent` (structure consistency)
+- Changed radius: Already `var(--radius-lg)` ✅
+
+**Tone Display**:
+- Changed radius: `var(--radius-md)` → `var(--radius-lg)` (12px → 16px)
+- Padding/margin already matched ✅
+
+---
+
+### 🏗️ **System Architecture**
+
+**Design Principle**: "Concentric scaling creates natural visual harmony"
+
+```
+Outer → Inner
+20px → 16px → 12px → 8px → 6px
+ ↓      ↓      ↓      ↓      ↓
+Card   Focus  Second Small  Tiny
+```
+
+**No More Arbitrary Radii**:
+- ❌ `calc(var(--radius-md) - 2px)` (10px, not in system)
+- ✅ `var(--radius-md)` (12px, defined in system)
+
+**Predictable Nesting**:
+- Container at one level? Contents are one step smaller.
+- Visual relationships clear at a glance.
+- Easier to maintain and extend.
+
+---
+
+### 📏 **Spacing Normalization**
+
+All focal displays now share:
+- **Vertical padding**: `2rem`
+- **Horizontal padding**: `1.5rem`
+- **Bottom margin**: `1.5rem`
+- **Max width**: `280px` (timer/BPM) or full-width (stats/tone)
+
+**Result**: Perfectly aligned visual rhythm across all primary content areas.
+
+---
+
 ## Version 1.4.3 - Layout Refinement & Justified Controls (2026-08-10)
 
 ### 🎯 **Focal Display Normalization**
