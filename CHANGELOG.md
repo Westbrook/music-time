@@ -1,5 +1,106 @@
 # Changelog
 
+## Version 1.3.0 - iOS-Inspired Design Refinement (2026-08-10)
+
+### 🎨 Complete Aesthetic Overhaul
+
+Inspired by **Impulse Pro Metronome** and modern iOS design language, this update creates a refined, professional aesthetic while maintaining approachability.
+
+**Design Philosophy**: Find the middle ground between our original colorful gradient design and the polished minimalism of professional iOS apps.
+
+### Visual Changes
+
+**Color Palette**:
+- ✅ iOS system colors (#007aff blue, #34c759 green, #ff3b30 red)
+- ✅ Neutral light gray background (#f2f2f7) replacing purple gradient
+- ✅ Professional black text on white cards
+- ✅ Refined secondary text colors
+
+**Typography**:
+- ✅ Lighter font weights (300) for display numbers - elegant, refined
+- ✅ Improved letter spacing (-2px on large numbers)
+- ✅ Better font hierarchy (300/500/600 weight system)
+- ✅ Uppercase labels with increased letter-spacing
+
+**Cards & Shadows**:
+- ✅ Subtle shadow system (0.05/0.08/0.12 opacity)
+- ✅ Refined border radius (8px/12px/16px system)
+- ✅ Thin 1px borders for definition
+- ✅ Hover elevation effects
+
+**Buttons**:
+- ✅ Refined padding and touch targets
+- ✅ Color-matched shadows (blue/green tint)
+- ✅ Smooth hover overlays with pseudo-elements
+- ✅ Scale-down on press (0.98x) for tactile feedback
+- ✅ Cubic-bezier easing for professional motion
+
+**Form Controls**:
+- ✅ Custom range slider thumbs (20px, shadowed)
+- ✅ Refined input borders and focus states
+- ✅ Focus glow effects (colored shadow rings)
+- ✅ Better touch targets
+
+**Micro-interactions**:
+- ✅ Beat dots with colored shadows when active
+- ✅ Card hover effects
+- ✅ Smooth transitions throughout
+- ✅ Professional cubic-bezier easing
+
+### Benefits
+
+**User Experience**:
+- 📱 More iOS-native feel (especially on iPhone/iPad)
+- 👁️ Easier on eyes during long practice sessions
+- 🎯 Better focus on content vs. decoration
+- ✨ Professional, polished appearance
+
+**Accessibility**:
+- ✅ Maintained WCAG AA contrast ratios
+- ✅ Larger, clearer touch targets
+- ✅ Better visual hierarchy
+- ✅ Improved readability
+
+**Performance**:
+- ⚡ Removed gradient rendering overhead
+- ⚡ Simpler CSS = faster paint times
+- ⚡ Smoother animations
+
+### Technical Details
+
+**Files Modified**:
+- `styles.css` - ~450 lines updated
+- No HTML changes
+- No JavaScript changes
+- 100% backward compatible
+
+**Design System**:
+```css
+/* Color Tokens */
+--primary-color: #007aff (iOS Blue)
+--success-color: #34c759 (iOS Green)
+--danger-color: #ff3b30 (iOS Red)
+
+/* Typography Scale */
+Font weights: 300, 500, 600
+Letter spacing: -2px to +1px
+
+/* Shadow Scale */
+sm: 0 1px 2px rgba(0,0,0,0.05)
+md: 0 2px 8px rgba(0,0,0,0.08)
+lg: 0 8px 24px rgba(0,0,0,0.12)
+
+/* Radius Scale */
+sm: 8px, md: 12px, lg: 16px
+```
+
+**Inspiration**: Impulse Pro Metronome aesthetic - clean, professional, musician-focused
+**Position**: Middle ground - professional yet approachable
+
+See `DESIGN_UPDATES.md` for full design rationale and comparison matrix.
+
+---
+
 ## Version 1.2.2 - "Done" Button UX Fix (2026-08-10)
 
 ### 🐛 Bug Fix
