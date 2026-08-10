@@ -1,5 +1,163 @@
 # Changelog
 
+## Version 1.4.2 - Unified Card Layout Rhythm (2026-08-10)
+
+### 🏗️ **Structural Consistency**
+
+Standardized the internal architecture of all cards to create a predictable, professional layout rhythm throughout the app.
+
+### Card Structure System
+
+**New Three-Part Architecture**:
+```
+┌─────────────────────────┐
+│ .card                   │ ← Container (no padding, overflow hidden)
+│ ┌─────────────────────┐ │
+│ │ h2 (Header)         │ │ ← Section label with accent line
+│ ├─────────────────────┤ │
+│ │ .card-body          │ │ ← Main content (2rem padding)
+│ │                     │ │
+│ │ Content...          │ │
+│ │                     │ │
+│ ├─────────────────────┤ │
+│ │ .card-footer        │ │ ← Button controls (1.5rem + 2rem padding)
+│ │ [Buttons]           │ │
+│ └─────────────────────┘ │
+└─────────────────────────┘
+```
+
+### Header Standardization
+
+**All Card Headers** (`h2`):
+- ✅ Uppercase micro-typography (0.75rem, 700 weight)
+- ✅ Letter spacing: 1.5px
+- ✅ Padding: 1.5rem top/sides, 1rem bottom
+- ✅ Background panel with bottom border
+- ✅ Blue accent line (40px × 2px)
+- ✅ Consistent positioning across all cards
+
+### Body Content Standardization
+
+**All Card Bodies** (`.card-body`):
+- ✅ Consistent padding: 2rem all sides
+- ✅ Standard vertical rhythm with 1.5rem gaps
+- ✅ `.control-group` wrapper for input sections
+- ✅ Predictable spacing for all content types
+
+### Footer Standardization
+
+**All Card Footers** (`.card-footer`):
+- ✅ Subtle top border separation
+- ✅ Background panel (matches header)
+- ✅ Padding: 1.5rem top, 2rem bottom/sides
+- ✅ Houses primary action buttons
+- ✅ Glass effect in dark mode
+
+### Layout Improvements
+
+**Stopwatch Card**:
+- Timer container centered in body
+- Hint text within body section
+- Buttons isolated in footer
+- Reduced top margin on timer
+
+**History Card**:
+- Stats grid in body
+- Daily breakdown with 1.5rem top margin
+- Consistent spacing throughout
+- No footer (all content in body)
+
+**Metronome Card**:
+- BPM display in body
+- `.control-group` wraps all inputs
+- 1.5rem gap between controls
+- Buttons in dedicated footer
+
+**Tuner Card**:
+- Tone display in body (1.5rem bottom margin)
+- `.control-group` wraps inputs
+- Consistent with metronome structure
+- Buttons in footer
+
+### Visual Benefits
+
+**Before v1.4.2**:
+- Inconsistent padding across cards
+- Headers mixed with content
+- Buttons floating in different locations
+- Unpredictable spacing
+
+**After v1.4.2**:
+- ✅ Every card follows same structure
+- ✅ Headers visually separated
+- ✅ Content in dedicated body section
+- ✅ Actions in dedicated footer
+- ✅ Predictable visual rhythm
+- ✅ Professional segmentation
+
+### Design Principles
+
+**Predictable Structure**:
+```
+User Expectation: "Where are the buttons?"
+Answer: Always in the footer ✅
+
+User Expectation: "Where does content start?"
+Answer: Always after the header, in the body ✅
+```
+
+**Professional Segmentation**:
+- Headers announce the section
+- Bodies contain the working area
+- Footers hold primary actions
+- Borders create clear visual breaks
+
+**Consistent Rhythm**:
+- 2rem body padding (ample breathing room)
+- 1.5rem vertical spacing (predictable gaps)
+- 1.5rem + 2rem footer padding (balanced)
+- Same structure, different content
+
+### Technical Implementation
+
+**HTML Changes**:
+```html
+<!-- Before -->
+<section class="card">
+  <h2>Section</h2>
+  <div>Content...</div>
+  <div class="controls">Buttons</div>
+</section>
+
+<!-- After -->
+<section class="card">
+  <h2>Section</h2>
+  <div class="card-body">
+    <div>Content...</div>
+  </div>
+  <div class="card-footer">
+    <div class="controls">Buttons</div>
+  </div>
+</section>
+```
+
+**CSS Classes**:
+- `.card` - Padding removed, overflow hidden
+- `.card h2` - Header with border and accent
+- `.card-body` - 2rem padding for content
+- `.card-footer` - 1.5rem/2rem padding for actions
+- `.control-group` - 1.5rem gap wrapper
+
+### Mobile Responsive
+
+All structural changes maintain mobile responsiveness:
+- Cards stack vertically
+- Padding scales appropriately
+- Headers remain consistent
+- Footers adapt to button wrapping
+
+---
+
 ## Version 1.4.1 - Premium Button & Control Refinement (2026-08-10)
 
 ### ✨ Professional Button Design System

@@ -35,106 +35,120 @@
             <!-- Practice Stopwatch Section -->
             <section class="card stopwatch-section">
                 <h2>Practice Timer</h2>
-                <div class="timer-container">
-                    <svg class="timer-ring" viewBox="0 0 200 200">
-                        <circle class="timer-ring-bg" cx="100" cy="100" r="85" />
-                        <circle class="timer-ring-progress" cx="100" cy="100" r="85" id="timerRing" />
-                    </svg>
-                    <div class="stopwatch-display" id="stopwatchDisplay">00:00:00</div>
+                <div class="card-body">
+                    <div class="timer-container">
+                        <svg class="timer-ring" viewBox="0 0 200 200">
+                            <circle class="timer-ring-bg" cx="100" cy="100" r="85" />
+                            <circle class="timer-ring-progress" cx="100" cy="100" r="85" id="timerRing" />
+                        </svg>
+                        <div class="stopwatch-display" id="stopwatchDisplay">00:00:00</div>
+                    </div>
+                    <p class="timer-hint">Click "Done" to save your session</p>
                 </div>
-                <div class="controls">
-                    <button id="startBtn" class="btn btn-primary">Start</button>
-                    <button id="pauseBtn" class="btn btn-secondary" disabled>Pause</button>
-                    <button id="doneBtn" class="btn btn-success" disabled>Done</button>
+                <div class="card-footer">
+                    <div class="controls">
+                        <button id="startBtn" class="btn btn-primary">Start</button>
+                        <button id="pauseBtn" class="btn btn-secondary" disabled>Pause</button>
+                        <button id="doneBtn" class="btn btn-success" disabled>Done</button>
+                    </div>
                 </div>
-                <p class="timer-hint">Tip: Click "Done" to save your practice session</p>
             </section>
 
             <!-- Practice History Section -->
             <section class="card history-section">
                 <h2>Practice History</h2>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-label">Today</div>
-                        <div class="stat-value" id="todayTotal">0h 0m</div>
+                <div class="card-body">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Today</div>
+                            <div class="stat-value" id="todayTotal">0h 0m</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">7-Day Total</div>
+                            <div class="stat-value" id="weekTotal">0h 0m</div>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-label">7-Day Total</div>
-                        <div class="stat-value" id="weekTotal">0h 0m</div>
+                    <div class="daily-breakdown">
+                        <h3>Last 7 Days</h3>
+                        <div id="dailyList" class="daily-list"></div>
                     </div>
-                </div>
-                <div class="daily-breakdown">
-                    <h3>Last 7 Days</h3>
-                    <div id="dailyList" class="daily-list"></div>
                 </div>
             </section>
 
             <!-- Metronome Section -->
             <section class="card metronome-section">
                 <h2>Metronome</h2>
-                <div class="metronome-controls">
+                <div class="card-body">
                     <div class="bpm-container">
                         <div class="bpm-display" id="bpmDisplay">120</div>
                         <div class="bpm-label">BPM</div>
                     </div>
-                    <div class="input-group">
-                        <label for="bpmSlider">Tempo:</label>
-                        <input type="range" id="bpmSlider" min="40" max="240" value="120" step="1">
-                        <input type="number" id="bpmInput" min="40" max="240" value="120">
+                    <div class="control-group">
+                        <div class="input-group">
+                            <label for="bpmSlider">Tempo:</label>
+                            <input type="range" id="bpmSlider" min="40" max="240" value="120" step="1">
+                            <input type="number" id="bpmInput" min="40" max="240" value="120">
+                        </div>
+                        <div class="input-group">
+                            <label for="beatsPerMeasure">Beats per measure:</label>
+                            <input type="number" id="beatsPerMeasure" min="1" max="16" value="4">
+                        </div>
+                        <div class="input-group">
+                            <label for="metronomeVolume">Volume:</label>
+                            <input type="range" id="metronomeVolume" min="0" max="100" value="70" step="1">
+                            <span id="metronomeVolumeDisplay">70%</span>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label for="beatsPerMeasure">Beats per measure:</label>
-                        <input type="number" id="beatsPerMeasure" min="1" max="16" value="4">
-                    </div>
-                    <div class="input-group">
-                        <label for="metronomeVolume">Volume:</label>
-                        <input type="range" id="metronomeVolume" min="0" max="100" value="70" step="1">
-                        <span id="metronomeVolumeDisplay">70%</span>
-                    </div>
+                    <div class="beat-indicator" id="beatIndicator"></div>
+                </div>
+                <div class="card-footer">
                     <div class="controls">
                         <button id="metronomeBtn" class="btn btn-primary">Start Metronome</button>
                     </div>
-                    <div class="beat-indicator" id="beatIndicator"></div>
                 </div>
             </section>
 
             <!-- Tuning Tone Generator Section -->
             <section class="card tuner-section">
                 <h2>Tuning Tone</h2>
-                <div class="tuner-controls">
+                <div class="card-body">
                     <div class="tone-display">
                         <div class="note-display" id="noteDisplay">F3</div>
                         <div class="freq-display" id="freqDisplay">174.61 Hz</div>
                     </div>
-                    <div class="input-group">
-                        <label for="noteSelect">Note:</label>
-                        <select id="noteSelect">
-                            <option value="C">C</option>
-                            <option value="C#">C#/Db</option>
-                            <option value="D">D</option>
-                            <option value="D#">D#/Eb</option>
-                            <option value="E">E</option>
-                            <option value="F" selected>F</option>
-                            <option value="F#">F#/Gb</option>
-                            <option value="G">G</option>
-                            <option value="G#">G#/Ab</option>
-                            <option value="A">A</option>
-                            <option value="A#">A#/Bb</option>
-                            <option value="B">B</option>
-                        </select>
-                        <label for="octaveSelect">Octave:</label>
-                        <select id="octaveSelect">
-                            <option value="2">2</option>
-                            <option value="3" selected>3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                        </select>
+                    <div class="control-group">
+                        <div class="input-group">
+                            <label for="noteSelect">Note:</label>
+                            <select id="noteSelect">
+                                <option value="C">C</option>
+                                <option value="C#">C#/Db</option>
+                                <option value="D">D</option>
+                                <option value="D#">D#/Eb</option>
+                                <option value="E">E</option>
+                                <option value="F" selected>F</option>
+                                <option value="F#">F#/Gb</option>
+                                <option value="G">G</option>
+                                <option value="G#">G#/Ab</option>
+                                <option value="A">A</option>
+                                <option value="A#">A#/Bb</option>
+                                <option value="B">B</option>
+                            </select>
+                            <label for="octaveSelect">Octave:</label>
+                            <select id="octaveSelect">
+                                <option value="2">2</option>
+                                <option value="3" selected>3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="volumeSlider">Volume:</label>
+                            <input type="range" id="volumeSlider" min="0" max="100" value="50" step="1">
+                            <span id="volumeDisplay">50%</span>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label for="volumeSlider">Volume:</label>
-                        <input type="range" id="volumeSlider" min="0" max="100" value="50" step="1">
-                        <span id="volumeDisplay">50%</span>
-                    </div>
+                </div>
+                <div class="card-footer">
                     <div class="controls">
                         <button id="toneBtn" class="btn btn-primary">Start Tone</button>
                     </div>
