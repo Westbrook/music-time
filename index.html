@@ -38,8 +38,21 @@
                 <div class="card-body">
                     <div class="timer-container">
                         <svg class="timer-ring" viewBox="0 0 200 200">
+                            <!-- Days ring (outermost) -->
+                            <circle class="timer-ring-bg" cx="100" cy="100" r="92" />
+                            <circle class="timer-ring-progress ring-days" cx="100" cy="100" r="92" id="ringDays" />
+
+                            <!-- Hours ring -->
                             <circle class="timer-ring-bg" cx="100" cy="100" r="85" />
-                            <circle class="timer-ring-progress" cx="100" cy="100" r="85" id="timerRing" />
+                            <circle class="timer-ring-progress ring-hours" cx="100" cy="100" r="85" id="ringHours" />
+
+                            <!-- Minutes ring -->
+                            <circle class="timer-ring-bg" cx="100" cy="100" r="78" />
+                            <circle class="timer-ring-progress ring-minutes" cx="100" cy="100" r="78" id="ringMinutes" />
+
+                            <!-- Seconds ring (innermost) -->
+                            <circle class="timer-ring-bg" cx="100" cy="100" r="71" />
+                            <circle class="timer-ring-progress ring-seconds" cx="100" cy="100" r="71" id="ringSeconds" />
                         </svg>
                         <div class="stopwatch-display" id="stopwatchDisplay">00:00:00</div>
                     </div>
@@ -60,12 +73,24 @@
                 <div class="card-body">
                     <div class="stats-grid">
                         <div class="stat-item">
-                            <div class="stat-label">Today</div>
-                            <div class="stat-value" id="todayTotal">0h 0m</div>
+                            <svg class="stat-ring" viewBox="0 0 120 120">
+                                <circle class="stat-ring-bg" cx="60" cy="60" r="52" />
+                                <circle class="stat-ring-progress" cx="60" cy="60" r="52" id="todayRing" />
+                            </svg>
+                            <div class="stat-content">
+                                <div class="stat-label">Today</div>
+                                <div class="stat-value" id="todayTotal">0h 0m</div>
+                            </div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-label">7-Day Total</div>
-                            <div class="stat-value" id="weekTotal">0h 0m</div>
+                            <svg class="stat-ring" viewBox="0 0 120 120">
+                                <circle class="stat-ring-bg" cx="60" cy="60" r="52" />
+                                <circle class="stat-ring-progress" cx="60" cy="60" r="52" id="weekRing" />
+                            </svg>
+                            <div class="stat-content">
+                                <div class="stat-label">7-Day Total</div>
+                                <div class="stat-value" id="weekTotal">0h 0m</div>
+                            </div>
                         </div>
                     </div>
                     <div class="daily-breakdown">

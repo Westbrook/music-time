@@ -265,33 +265,57 @@ main {
     width: 100%;
     height: 100%;
     transform: rotate(-90deg);
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
 }
 
 .timer-ring-bg {
     fill: none;
     stroke: var(--border-color);
-    stroke-width: 8;
+    stroke-width: 4;
+    opacity: 0.3;
 }
 
 .timer-ring-progress {
     fill: none;
-    stroke: var(--primary-color);
-    stroke-width: 8;
+    stroke-width: 4;
     stroke-linecap: round;
-    stroke-dasharray: 534;
+    transition: stroke-dashoffset 0.1s linear;
+}
+
+/* Seconds ring - Blue (innermost) */
+.ring-seconds {
+    stroke: var(--primary-color);
+    stroke-dasharray: 446; /* 2 * PI * 71 */
+    stroke-dashoffset: 446;
+}
+
+/* Minutes ring - Teal */
+.ring-minutes {
+    stroke: #5ac8fa; /* SF Teal */
+    stroke-dasharray: 490; /* 2 * PI * 78 */
+    stroke-dashoffset: 490;
+}
+
+/* Hours ring - Green */
+.ring-hours {
+    stroke: var(--success-color);
+    stroke-dasharray: 534; /* 2 * PI * 85 */
     stroke-dashoffset: 534;
-    transition: stroke-dashoffset 0.3s ease;
+}
+
+/* Days ring - Orange (outermost) */
+.ring-days {
+    stroke: #ff9500; /* SF Orange */
+    stroke-dasharray: 578; /* 2 * PI * 92 */
+    stroke-dashoffset: 578;
 }
 
 @media (prefers-color-scheme: dark) {
-    .timer-ring-bg {
-        stroke: var(--border-color);
-        stroke-width: 6;
+    .timer-ring-progress {
+        filter: drop-shadow(0 0 6px currentColor);
     }
 
-    .timer-ring-progress {
-        filter: drop-shadow(0 0 8px var(--primary-color));
+    .timer-ring-bg {
+        opacity: 0.2;
     }
 }
 
@@ -555,6 +579,10 @@ main {
     border-radius: var(--radius-md);
     transition: all 0.2s;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .stat-item::before {
@@ -575,17 +603,57 @@ main {
     opacity: 0.5;
 }
 
+/* Stat rings */
+.stat-ring {
+    width: 90px;
+    height: 90px;
+    transform: rotate(-90deg);
+}
+
+.stat-ring-bg {
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 3;
+    opacity: 0.3;
+}
+
+.stat-ring-progress {
+    fill: none;
+    stroke: var(--primary-color);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 327; /* 2 * PI * 52 */
+    stroke-dashoffset: 327;
+    transition: stroke-dashoffset 0.3s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+    .stat-ring-progress {
+        filter: drop-shadow(0 0 4px var(--primary-color));
+    }
+
+    .stat-ring-bg {
+        opacity: 0.2;
+    }
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
 .stat-label {
     font-size: 0.6875rem;
     color: var(--text-secondary);
-    margin-bottom: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
 .stat-value {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: var(--text-color);
     letter-spacing: -1px;

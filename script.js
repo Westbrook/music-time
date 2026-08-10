@@ -282,14 +282,44 @@
         },
 
         updateRing() {
-            const ring = document.getElementById('timerRing');
-            if (!ring) return;
+            // Seconds ring (fills every 60 seconds)
+            const ringSeconds = document.getElementById('ringSeconds');
+            if (ringSeconds) {
+                const seconds = this.elapsed % 60;
+                const circumference = 446; // 2 * PI * 71
+                const offset = circumference - (seconds / 60) * circumference;
+                ringSeconds.style.strokeDashoffset = offset;
+            }
 
-            // Animate ring based on elapsed seconds (full circle every 60 seconds)
-            const seconds = this.elapsed % 60;
-            const circumference = 534; // 2 * PI * 85
-            const offset = circumference - (seconds / 60) * circumference;
-            ring.style.strokeDashoffset = offset;
+            // Minutes ring (fills every 60 minutes)
+            const ringMinutes = document.getElementById('ringMinutes');
+            if (ringMinutes) {
+                const totalMinutes = Math.floor(this.elapsed / 60);
+                const minutes = totalMinutes % 60;
+                const circumference = 490; // 2 * PI * 78
+                const offset = circumference - (minutes / 60) * circumference;
+                ringMinutes.style.strokeDashoffset = offset;
+            }
+
+            // Hours ring (fills every 24 hours)
+            const ringHours = document.getElementById('ringHours');
+            if (ringHours) {
+                const totalHours = Math.floor(this.elapsed / 3600);
+                const hours = totalHours % 24;
+                const circumference = 534; // 2 * PI * 85
+                const offset = circumference - (hours / 24) * circumference;
+                ringHours.style.strokeDashoffset = offset;
+            }
+
+            // Days ring (accumulates indefinitely)
+            const ringDays = document.getElementById('ringDays');
+            if (ringDays) {
+                const days = Math.floor(this.elapsed / 86400);
+                const circumference = 578; // 2 * PI * 92
+                // Show full progress for each day completed
+                const offset = circumference - ((days % 1) * circumference);
+                ringDays.style.strokeDashoffset = offset;
+            }
         },
 
         updateButtons() {
@@ -366,6 +396,9 @@
 
             this.weekDisplay.textContent = formatDurationShort(weekTotal);
 
+            // Update stat rings
+            this.updateStatRings(todaySeconds, weekTotal);
+
             // Render daily breakdown
             this.dailyList.innerHTML = '';
             last7Days.forEach(day => {
@@ -384,6 +417,28 @@
                 item.appendChild(durationSpan);
                 this.dailyList.appendChild(item);
             });
+        },
+
+        updateStatRings(todaySeconds, weekSeconds) {
+            // Today ring - goal is 1 hour (3600 seconds)
+            const todayRing = document.getElementById('todayRing');
+            if (todayRing) {
+                const goalToday = 3600; // 1 hour
+                const progress = Math.min(todaySeconds / goalToday, 1);
+                const circumference = 327; // 2 * PI * 52
+                const offset = circumference - (progress * circumference);
+                todayRing.style.strokeDashoffset = offset;
+            }
+
+            // Week ring - goal is 7 hours (25200 seconds)
+            const weekRing = document.getElementById('weekRing');
+            if (weekRing) {
+                const goalWeek = 25200; // 7 hours
+                const progress = Math.min(weekSeconds / goalWeek, 1);
+                const circumference = 327;
+                const offset = circumference - (progress * circumference);
+                weekRing.style.strokeDashoffset = offset;
+            }
         }
     };
 

@@ -1,5 +1,183 @@
 # Changelog
 
+## Version 1.5.0 - Multi-Ring Progress System & Visual Cohesion (2026-08-10)
+
+### ⏱️ **Concentric Multi-Ring Timer**
+
+The practice timer now visualizes progress across four time scales simultaneously with nested, color-coded rings.
+
+**Four-Ring System**:
+```
+Days Ring (Orange, outermost)  ← 24 hours to fill
+Hours Ring (Green)             ← 60 minutes to fill
+Minutes Ring (Teal)            ← 60 seconds to fill
+Seconds Ring (Blue, innermost) ← Real-time progress
+```
+
+**Visual Architecture**:
+```
+        Seconds (71px radius)
+      Minutes (78px radius)
+    Hours (85px radius)
+  Days (92px radius)
+```
+
+**Color Coding**:
+- 🔵 **Blue** (Seconds) — iOS System Blue (#007aff)
+- 🟦 **Teal** (Minutes) — SF Teal (#5ac8fa)
+- 🟢 **Green** (Hours) — SF Green (#34c759)
+- 🟠 **Orange** (Days) — SF Orange (#ff9500)
+
+**How It Works**:
+- **Seconds ring**: Fills smoothly every 60 seconds, then resets
+- **Minutes ring**: Advances 1/60th with each minute, fills at 60 minutes
+- **Hours ring**: Advances 1/24th with each hour, fills at 24 hours
+- **Days ring**: Advances with each day completed
+
+**Result**: At a glance, see exactly where you are in your practice session across all time scales.
+
+---
+
+### 📊 **Stat Card Progress Rings**
+
+Added visual progress indicators to the Practice History card, creating cohesion with the timer design.
+
+**Today Ring** (Blue):
+- Goal: 1 hour of practice
+- Fills as you practice
+- Live updates with active session
+
+**7-Day Total Ring** (Blue):
+- Goal: 7 hours over the week
+- Shows weekly progress
+- Fills proportionally to goal
+
+**Visual Structure**:
+```
+┌──────────────────┐  ┌──────────────────┐
+│    ⭕ 90px       │  │    ⭕ 90px       │
+│                  │  │                  │
+│     Today        │  │   7-Day Total    │
+│    0h 45m        │  │     3h 12m       │
+└──────────────────┘  └──────────────────┘
+```
+
+**Benefits**:
+- Visual feedback on daily goals
+- Quick progress assessment
+- Matches timer aesthetic
+- Creates visual unity across cards
+
+---
+
+### 🎨 **Technical Implementation**
+
+**Timer Rings** (script.js):
+```javascript
+updateRing() {
+  // Seconds: elapsed % 60 / 60
+  // Minutes: (elapsed / 60) % 60 / 60
+  // Hours: (elapsed / 3600) % 24 / 24
+  // Days: elapsed / 86400 (accumulates)
+}
+```
+
+**Stat Rings** (script.js):
+```javascript
+updateStatRings(todaySeconds, weekSeconds) {
+  // Today: progress against 3600 second goal
+  // Week: progress against 25200 second goal
+}
+```
+
+**Ring Styling** (styles.css):
+```css
+/* Thinner rings for nested display */
+stroke-width: 4px;
+
+/* Color-specific classes */
+.ring-seconds { stroke: var(--primary-color); }
+.ring-minutes { stroke: #5ac8fa; }
+.ring-hours { stroke: var(--success-color); }
+.ring-days { stroke: #ff9500; }
+```
+
+**Dark Mode Enhancement**:
+```css
+.timer-ring-progress {
+  filter: drop-shadow(0 0 6px currentColor);
+}
+```
+Each ring glows with its own color.
+
+---
+
+### ✨ **Visual Cohesion Benefits**
+
+**Before v1.5.0**:
+```
+Timer:  [Single blue ring, seconds only]
+Stats:  [Text-only display, no visual progress]
+```
+
+**After v1.5.0**:
+```
+Timer:  [Four nested rings, all time scales] ⭕🔵🟦🟢🟠
+Stats:  [Progress rings matching timer style] ⭕🔵
+```
+
+**Creates Unity**:
+1. Both cards use circular progress visualization
+2. Same stroke width and styling
+3. Shared color language (blue primary)
+4. Consistent glowing effects in dark mode
+5. User recognizes "progress ring = time tracking"
+
+**Information Density**:
+- Timer shows: seconds, minutes, hours, days (4 dimensions)
+- Stats show: today vs goal, week vs goal (2 dimensions)
+- All at a glance, no numbers needed
+
+---
+
+### 🔍 **User Experience**
+
+**Timer Insights**:
+- "I've been practicing for 2 minutes 30 seconds" (blue/teal rings)
+- "I'm halfway through my first hour" (green ring half-full)
+- "This is day 3 of my streak" (orange ring progress)
+
+**Stats Insights**:
+- "Almost at my daily goal!" (today ring nearly complete)
+- "Halfway through my weekly target" (week ring 50% filled)
+
+**Progressive Disclosure**:
+- Quick glance: color-coded ring progress
+- Focused look: precise time in center display
+- Detail view: daily breakdown below
+
+---
+
+### 📐 **Ring Specifications**
+
+**Timer Rings**:
+| Ring | Radius | Circumference | Color | Period |
+|------|--------|---------------|-------|--------|
+| Seconds | 71px | 446 | Blue | 60s |
+| Minutes | 78px | 490 | Teal | 60m |
+| Hours | 85px | 534 | Green | 24h |
+| Days | 92px | 578 | Orange | ∞ |
+
+**Stat Rings**:
+| Ring | Radius | Circumference | Color | Goal |
+|------|--------|---------------|-------|------|
+| Today | 52px | 327 | Blue | 1h |
+| Week | 52px | 327 | Blue | 7h |
+
+**Spacing**: 7px gap between timer rings creates clear visual separation.
+
+---
+
 ## Version 1.4.4 - Concentric Border Radius System & Focal Display Normalization (2026-08-10)
 
 ### 🎯 **Complete Focal Display Normalization**
