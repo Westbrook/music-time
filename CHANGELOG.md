@@ -1,5 +1,66 @@
 # Changelog
 
+## Version 1.5.1 - Normalized Focal Display Heights (2026-08-10)
+
+### 📏 **Perfect Height Normalization**
+
+All four focal displays now have identical heights, creating complete visual harmony.
+
+**Unified Height System**:
+```css
+/* Desktop/Tablet */
+min-height: 280px;
+
+/* Mobile */
+min-height: 240px;
+```
+
+**All Four Displays**:
+- ✅ Timer container: `280px`
+- ✅ Stats grid: `280px`
+- ✅ BPM container: `280px`
+- ✅ Tone display: `280px`
+
+**Implementation**:
+```css
+.timer-container,
+.stats-grid,
+.bpm-container,
+.tone-display {
+  min-height: 280px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+```
+
+**Benefits**:
+- ✅ Perfect visual alignment
+- ✅ Equal visual weight
+- ✅ Scannable layout
+- ✅ Professional consistency
+- ✅ Predictable structure
+
+**Before v1.5.1**:
+```
+Timer:  ~280px (fixed height)
+Stats:  ~200px (content-based)
+BPM:    ~160px (compact)
+Tone:   ~180px (medium)
+```
+
+**After v1.5.1**:
+```
+Timer:  280px ✅
+Stats:  280px ✅
+BPM:    280px ✅
+Tone:   280px ✅
+```
+
+**Visual Result**: All focal displays are now perfectly aligned, with content vertically centered within each container.
+
+---
+
 ## Version 1.5.0 - Multi-Ring Progress System & Visual Cohesion (2026-08-10)
 
 ### ⏱️ **Concentric Multi-Ring Timer**
