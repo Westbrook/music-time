@@ -1,5 +1,50 @@
 # Changelog
 
+## Version 1.5.2 - Stats Grid Padding Adjustment (2026-08-10)
+
+### 📦 **Stats Card Compaction**
+
+Reduced internal padding in the stats grid to match the compact height of other focal displays.
+
+**Stats Grid Changes**:
+```css
+/* Before */
+.stats-grid {
+  padding: 0.5rem;
+  gap: 0.5rem;
+}
+
+.stat-item {
+  padding: 1.5rem 1rem;
+  gap: 0.75rem;
+}
+
+/* After */
+.stats-grid {
+  padding: 0.375rem;  /* Tighter outer padding */
+  gap: 0.375rem;      /* Tighter gap between items */
+}
+
+.stat-item {
+  padding: 1rem 0.75rem;  /* More compact padding */
+  gap: 0.5rem;            /* Tighter gap between ring and text */
+  box-sizing: border-box;
+}
+```
+
+**Problem**: The stats grid had extra padding layers (grid padding + item padding + gap) that made it visually taller than the other focal displays, even with the same `min-height: 200px`.
+
+**Solution**: Reduced padding at both the grid and item level to create a more compact, visually balanced display that truly matches the other focal heights.
+
+**Benefits**:
+- ✅ Stats grid now visually matches other displays
+- ✅ Better vertical rhythm across all cards
+- ✅ More efficient use of space
+- ✅ Still maintains readability
+- ✅ True height normalization achieved
+
+---
+
 ## Version 1.5.1 - Compact Normalized Focal Display Heights (2026-08-10)
 
 ### 📏 **Compact Height Normalization**
