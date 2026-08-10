@@ -176,6 +176,11 @@
             this.pauseBtn = document.getElementById('pauseBtn');
             this.doneBtn = document.getElementById('doneBtn');
 
+            if (!this.startBtn || !this.pauseBtn || !this.doneBtn) {
+                console.error('Stopwatch: Required DOM elements not found');
+                return;
+            }
+
             this.startBtn.addEventListener('click', () => this.start());
             this.pauseBtn.addEventListener('click', () => this.pause());
             this.doneBtn.addEventListener('click', () => this.done());
@@ -275,6 +280,8 @@
         },
 
         updateButtons() {
+            if (!this.startBtn || !this.pauseBtn || !this.doneBtn) return;
+
             this.startBtn.disabled = this.running;
             this.pauseBtn.disabled = !this.running;
             this.doneBtn.disabled = this.elapsed === 0;
@@ -310,6 +317,9 @@
         },
 
         refresh() {
+            // Defensive check - don't run if not initialized
+            if (!this.todayDisplay || !this.weekDisplay || !this.dailyList) return;
+
             const dailyData = StorageManager.getDailyData();
             const today = getDayKey();
 
