@@ -1,5 +1,135 @@
 # Changelog
 
+## Version 1.4.3 - Layout Refinement & Justified Controls (2026-08-10)
+
+### 🎯 **Focal Display Normalization**
+
+Created a unified visual language for primary content displays across all cards.
+
+**Unified Focal Displays**:
+- `.timer-container` (Stopwatch)
+- `.stats-grid` (History)
+- `.bpm-container` (Metronome)
+- `.tone-display` (Tuner)
+
+**Shared Characteristics**:
+- ✅ Consistent padding and margins
+- ✅ Unified background treatment
+- ✅ Same border styling
+- ✅ Matching shadows (light mode)
+- ✅ Glass effect (dark mode)
+
+**Light Mode**:
+```css
+background: white;
+box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+border: 1px solid var(--border-color);
+```
+
+**Dark Mode**:
+```css
+background: rgba(255, 255, 255, 0.03);
+border-color: rgba(255, 255, 255, 0.08);
+```
+
+### 🔘 **Justified Button Layout**
+
+Buttons now fill their container width for a more polished, professional appearance.
+
+**Before**:
+```
+[  Start  ] [  Pause  ] [  Done  ]  (centered, gaps)
+```
+
+**After**:
+```
+[    Start    ][    Pause    ][    Done    ]  (justified, proportional)
+```
+
+**Implementation**:
+- Buttons use `flex: 1` to share available space
+- Maintain min-width for touch targets
+- Wrap gracefully on mobile
+- More intentional, purposeful feel
+
+### 📌 **Footer Positioning**
+
+Card footers now always stick to the bottom using flexbox.
+
+**Card Structure**:
+```css
+.card {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-body {
+  flex: 1; /* Takes available space */
+}
+
+.card-footer {
+  margin-top: auto; /* Pushes to bottom */
+}
+```
+
+**Benefit**: Even with varying content heights, action buttons are always consistently positioned at the card bottom.
+
+### 📱 **Mobile Responsive Refinement**
+
+Fixed the incorrect mobile padding rule and properly scoped responsive changes:
+
+**Before** (incorrect):
+```css
+@media (max-width: 768px) {
+  .card {
+    padding: 1.5rem; /* Wrong - conflicts with new structure */
+  }
+}
+```
+
+**After** (correct):
+```css
+@media (max-width: 768px) {
+  .card h2 {
+    padding: 1.25rem 1.5rem 0.875rem;
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
+
+  .card-footer {
+    padding: 1.25rem 1.5rem 1.5rem;
+  }
+}
+```
+
+### 🎨 **Visual Consistency**
+
+**Focal Display Pattern** - All primary displays share:
+1. 2rem vertical padding, 1.5rem horizontal
+2. 1.5rem bottom margin
+3. Rounded corners (var(--radius-md))
+4. Subtle elevation (shadow/glass)
+5. Consistent border treatment
+
+**Stats Grid** now matches:
+- Timer container styling
+- BPM container styling
+- Tone display styling
+
+**Result**: User can instantly recognize "this is the main thing" in each card.
+
+### ✨ **Key Improvements**
+
+1. **Normalized Focal Displays** - Consistent visual weight across all primary content
+2. **Justified Buttons** - Professional, intentional layout
+3. **Sticky Footers** - Actions always at the bottom
+4. **Fixed Mobile Padding** - Proper responsive structure
+5. **Unified Visual Language** - Same patterns throughout
+
+---
+
 ## Version 1.4.2 - Unified Card Layout Rhythm (2026-08-10)
 
 ### 🏗️ **Structural Consistency**

@@ -127,6 +127,8 @@ main {
     box-shadow: var(--shadow);
     transition: box-shadow 0.2s ease;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 @media (prefers-color-scheme: light) {
@@ -179,6 +181,7 @@ main {
 /* Card Body - Consistent padding */
 .card-body {
     padding: 2rem;
+    flex: 1;
 }
 
 /* Card Footer - For button groups */
@@ -186,12 +189,37 @@ main {
     padding: 1.5rem 2rem 2rem;
     border-top: 1px solid var(--border-color);
     background: var(--bg-color);
+    margin-top: auto;
 }
 
 @media (prefers-color-scheme: dark) {
     .card-footer {
         background: rgba(255, 255, 255, 0.02);
         border-top-color: rgba(255, 255, 255, 0.06);
+    }
+}
+
+/* Focal Display - Unified primary content display */
+.focal-display {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    background: var(--bg-color);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+@media (prefers-color-scheme: light) {
+    .focal-display {
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .focal-display {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.08);
     }
 }
 
@@ -285,8 +313,13 @@ main {
 .controls {
     display: flex;
     gap: 0.625rem;
-    justify-content: center;
+    justify-content: stretch;
     flex-wrap: wrap;
+}
+
+.controls .btn {
+    flex: 1;
+    min-width: 100px;
 }
 
 .btn {
@@ -473,9 +506,24 @@ main {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 0.5rem;
     margin-bottom: 1.5rem;
-    background: transparent;
+    background: var(--bg-color);
     padding: 0.25rem;
     border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+@media (prefers-color-scheme: light) {
+    .stats-grid {
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .stats-grid {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.08);
+    }
 }
 
 .stat-item {
@@ -852,6 +900,20 @@ select:focus {
     margin-bottom: 1.5rem;
 }
 
+@media (prefers-color-scheme: light) {
+    .tone-display {
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .tone-display {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+}
+
 .note-display {
     font-size: 3.5rem;
     font-weight: 300;
@@ -907,8 +969,20 @@ footer {
         font-size: 3.5rem;
     }
 
-    .card {
+    .card h2 {
+        padding: 1.25rem 1.5rem 0.875rem;
+    }
+
+    .card h2::after {
+        left: 1.5rem;
+    }
+
+    .card-body {
         padding: 1.5rem;
+    }
+
+    .card-footer {
+        padding: 1.25rem 1.5rem 1.5rem;
     }
 
     .btn {
