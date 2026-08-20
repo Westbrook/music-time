@@ -842,55 +842,64 @@
         },
 
         renderKeyboard() {
-            let whiteKeyIndex = 0;
             const whiteKeyWidth = 40;
             const blackKeyWidth = 26;
 
-            // First pass: create all keys
-            this.keyboard.forEach((keyData, index) => {
+            // First pass: render all WHITE keys
+            let whiteKeyIndex = 0;
+            this.keyboard.forEach((keyData) => {
+                if (keyData.isBlack) return;
+
                 const key = document.createElement('div');
-                key.className = `piano-key ${keyData.isBlack ? 'black' : 'white'}`;
+                key.className = 'piano-key white';
                 key.dataset.note = keyData.note;
                 key.dataset.octave = keyData.octave;
-                key.dataset.index = index;
 
                 const label = document.createElement('span');
                 label.className = 'piano-key-label';
                 label.textContent = `${keyData.note}${keyData.octave}`;
                 key.appendChild(label);
 
-                if (!keyData.isBlack) {
-                    // Position white keys sequentially
-                    key.style.left = `${whiteKeyIndex * whiteKeyWidth}px`;
-                    whiteKeyIndex++;
-                }
+                key.style.left = `${whiteKeyIndex * whiteKeyWidth}px`;
+                whiteKeyIndex++;
 
                 this.keyboardEl.appendChild(key);
             });
 
-            // Second pass: position black keys correctly relative to white keys
-            const blackKeys = this.keyboardEl.querySelectorAll('.piano-key.black');
-            blackKeys.forEach((blackKey) => {
-                const note = blackKey.dataset.note;
-                const octave = blackKey.dataset.octave;
+            // Second pass: render all BLACK keys (on top of white keys)
+            this.keyboard.forEach((keyData) => {
+                if (!keyData.isBlack) return;
 
-                // Find the white key to the left of this black key
-                // C# is between C and D, D# between D and E, etc.
+                const key = document.createElement('div');
+                key.className = 'piano-key black';
+                key.dataset.note = keyData.note;
+                key.dataset.octave = keyData.octave;
+
+                const label = document.createElement('span');
+                label.className = 'piano-key-label';
+                label.textContent = `${keyData.note}${keyData.octave}`;
+                key.appendChild(label);
+
+                // Calculate position based on which white key it follows
+                const note = keyData.note;
+                const octave = keyData.octave;
+                const octaveOffset = (octave - 3) * 7; // 7 white keys per octave
+
                 let baseWhiteKeyIndex = 0;
-                const octaveOffset = (parseInt(octave) - 3) * 7; // 7 white keys per octave
-
                 switch(note) {
                     case 'C#': baseWhiteKeyIndex = 0; break; // After C
                     case 'D#': baseWhiteKeyIndex = 1; break; // After D
-                    case 'F#': baseWhiteKeyIndex = 3; break; // After F (skip E)
+                    case 'F#': baseWhiteKeyIndex = 3; break; // After F
                     case 'G#': baseWhiteKeyIndex = 4; break; // After G
                     case 'A#': baseWhiteKeyIndex = 5; break; // After A
                 }
 
                 const totalWhiteKeyIndex = octaveOffset + baseWhiteKeyIndex;
-                // Position black key at the right edge of the white key to its left
+                // Position black key centered between two white keys
                 const leftPos = (totalWhiteKeyIndex + 1) * whiteKeyWidth - (blackKeyWidth / 2);
-                blackKey.style.left = `${leftPos}px`;
+                key.style.left = `${leftPos}px`;
+
+                this.keyboardEl.appendChild(key);
             });
         },
 
