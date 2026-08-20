@@ -1072,36 +1072,36 @@ footer {
     align-items: center;
 }
 
-.toggle-group {
-    display: flex;
-    align-items: center;
+.keyboard-group {
+    margin-bottom: 1.5rem;
 }
 
-.toggle-group label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    user-select: none;
+.keyboard-group:last-child {
+    margin-bottom: 0;
 }
 
-.toggle-group input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
+.keyboard-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+    padding-left: 0.25rem;
 }
 
 .keyboard-container {
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 1rem 0;
+    padding: 0.5rem 0;
+    max-width: 100%;
 }
 
 .piano-keyboard {
-    display: flex;
+    display: block;
     position: relative;
     height: 180px;
-    min-width: 840px;
+    width: 560px; /* 14 white keys * 40px */
     margin: 0 auto;
 }
 
@@ -1201,18 +1201,7 @@ footer {
         gap: 1rem;
     }
 
-    .piano-keyboard {
-        min-width: 700px;
-    }
-
-    .piano-key.white {
-        width: 33px;
-    }
-
-    .piano-key.black {
-        width: 22px;
-        height: 95px;
-    }
+    /* Keyboard stays at native width (560px); container scrolls on narrow screens */
 }
 
 @media (max-width: 768px) {

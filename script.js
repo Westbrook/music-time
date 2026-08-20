@@ -793,10 +793,12 @@
 
     const ChordalStudies = {
         audioContext: null,
-        activeNotes: new Map(), // Map of note key -> {oscillator, gainNode}
-        holdNotes: true,
+        // Separate active-note maps per keyboard so each can be controlled independently
+        activeNotesHold: new Map(),
+        activeNotesMomentary: new Map(),
         volume: 0.5,
         waveform: 'sine',
+        keyboards: [], // Populated in init(): [{el, mode, activeNotes}]
 
         // Two octaves: C3 to B4
         keyboard: [
@@ -829,19 +831,24 @@
         ],
 
         init() {
-            this.keyboardEl = document.getElementById('pianoKeyboard');
+            const holdEl = document.getElementById('pianoKeyboardHold');
+            const momentaryEl = document.getElementById('pianoKeyboardMomentary');
             this.instrumentSelect = document.getElementById('instrumentSelect');
             this.volumeSlider = document.getElementById('chordVolumeSlider');
             this.volumeDisplay = document.getElementById('chordVolumeDisplay');
-            this.holdToggle = document.getElementById('holdNotesToggle');
 
-            if (!this.keyboardEl) return;
+            if (!holdEl || !momentaryEl) return;
 
-            this.renderKeyboard();
+            this.keyboards = [
+                {el: holdEl, mode: 'hold', activeNotes: this.activeNotesHold},
+                {el: momentaryEl, mode: 'momentary', activeNotes: this.activeNotesMomentary}
+            ];
+
+            this.keyboards.forEach(kb => this.renderKeyboard(kb));
             this.attachEventListeners();
         },
 
-        renderKeyboard() {
+        renderKeyboard(kb) {
             const whiteKeyWidth = 40;
             const blackKeyWidth = 26;
 
@@ -863,7 +870,7 @@
                 key.style.left = `${whiteKeyIndex * whiteKeyWidth}px`;
                 whiteKeyIndex++;
 
-                this.keyboardEl.appendChild(key);
+                kb.el.appendChild(key);
             });
 
             // Second pass: render all BLACK keys (on top of white keys)
@@ -880,135 +887,124 @@
                 label.textContent = `${keyData.note}${keyData.octave}`;
                 key.appendChild(label);
 
-                // Calculate position based on which white key it follows
                 const note = keyData.note;
                 const octave = keyData.octave;
-                const octaveOffset = (octave - 3) * 7; // 7 white keys per octave
+                const octaveOffset = (octave - 3) * 7;
 
                 let baseWhiteKeyIndex = 0;
                 switch(note) {
-                    case 'C#': baseWhiteKeyIndex = 0; break; // After C
-                    case 'D#': baseWhiteKeyIndex = 1; break; // After D
-                    case 'F#': baseWhiteKeyIndex = 3; break; // After F
-                    case 'G#': baseWhiteKeyIndex = 4; break; // After G
-                    case 'A#': baseWhiteKeyIndex = 5; break; // After A
+                    case 'C#': baseWhiteKeyIndex = 0; break;
+                    case 'D#': baseWhiteKeyIndex = 1; break;
+                    case 'F#': baseWhiteKeyIndex = 3; break;
+                    case 'G#': baseWhiteKeyIndex = 4; break;
+                    case 'A#': baseWhiteKeyIndex = 5; break;
                 }
 
                 const totalWhiteKeyIndex = octaveOffset + baseWhiteKeyIndex;
-                // Position black key centered between two white keys
                 const leftPos = (totalWhiteKeyIndex + 1) * whiteKeyWidth - (blackKeyWidth / 2);
                 key.style.left = `${leftPos}px`;
 
-                this.keyboardEl.appendChild(key);
+                kb.el.appendChild(key);
             });
         },
 
         attachEventListeners() {
-            // Instrument selection
+            // Instrument selection - update all active oscillators across both keyboards
             this.instrumentSelect.addEventListener('change', (e) => {
                 this.waveform = e.target.value;
-                // Update all active oscillators
-                this.activeNotes.forEach((noteData) => {
-                    noteData.oscillator.type = this.waveform;
+                this.keyboards.forEach(kb => {
+                    kb.activeNotes.forEach((noteData) => {
+                        noteData.oscillator.type = this.waveform;
+                    });
                 });
             });
 
-            // Volume control
+            // Volume control - update all active gain nodes across both keyboards
             this.volumeSlider.addEventListener('input', (e) => {
                 this.volume = e.target.value / 100;
                 this.volumeDisplay.textContent = `${e.target.value}%`;
-                // Update all active gain nodes
-                this.activeNotes.forEach((noteData) => {
-                    noteData.gainNode.gain.setTargetAtTime(
-                        this.volume * 0.3,
-                        this.audioContext?.currentTime || 0,
-                        0.01
-                    );
+                this.keyboards.forEach(kb => {
+                    kb.activeNotes.forEach((noteData) => {
+                        noteData.gainNode.gain.setTargetAtTime(
+                            this.volume * 0.3,
+                            this.audioContext?.currentTime || 0,
+                            0.01
+                        );
+                    });
                 });
             });
 
-            // Hold toggle
-            this.holdToggle.addEventListener('change', (e) => {
-                this.holdNotes = e.target.checked;
-                if (!this.holdNotes) {
-                    // Stop all notes when switching to momentary mode
-                    this.stopAllNotes();
-                }
-            });
+            // Wire up interactions per keyboard
+            this.keyboards.forEach(kb => this.attachKeyboardEvents(kb));
+        },
 
-            // Keyboard interactions
-            const keys = this.keyboardEl.querySelectorAll('.piano-key');
+        attachKeyboardEvents(kb) {
+            const keys = kb.el.querySelectorAll('.piano-key');
             keys.forEach(key => {
-                // Mouse events
                 key.addEventListener('mousedown', (e) => {
                     e.preventDefault();
-                    this.handleKeyPress(key);
+                    this.handleKeyPress(key, kb);
                 });
 
                 key.addEventListener('mouseup', (e) => {
                     e.preventDefault();
-                    if (!this.holdNotes) {
-                        this.handleKeyRelease(key);
+                    if (kb.mode === 'momentary') {
+                        this.handleKeyRelease(key, kb);
                     }
                 });
 
-                key.addEventListener('mouseleave', (e) => {
-                    if (!this.holdNotes) {
-                        this.handleKeyRelease(key);
+                key.addEventListener('mouseleave', () => {
+                    if (kb.mode === 'momentary') {
+                        this.handleKeyRelease(key, kb);
                     }
                 });
 
-                // Touch events
                 key.addEventListener('touchstart', (e) => {
                     e.preventDefault();
-                    this.handleKeyPress(key);
+                    this.handleKeyPress(key, kb);
                 });
 
                 key.addEventListener('touchend', (e) => {
                     e.preventDefault();
-                    if (!this.holdNotes) {
-                        this.handleKeyRelease(key);
+                    if (kb.mode === 'momentary') {
+                        this.handleKeyRelease(key, kb);
                     }
                 });
             });
         },
 
-        handleKeyPress(keyEl) {
+        handleKeyPress(keyEl, kb) {
             const note = keyEl.dataset.note;
             const octave = parseInt(keyEl.dataset.octave);
             const noteKey = `${note}${octave}`;
 
-            // Initialize audio context on first interaction
             if (!this.audioContext) {
                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
 
-            // If in hold mode, toggle the note
-            if (this.holdNotes) {
-                if (this.activeNotes.has(noteKey)) {
-                    this.stopNote(noteKey, keyEl);
+            if (kb.mode === 'hold') {
+                if (kb.activeNotes.has(noteKey)) {
+                    this.stopNote(noteKey, keyEl, kb);
                 } else {
-                    this.playNote(noteKey, note, octave, keyEl);
+                    this.playNote(noteKey, note, octave, keyEl, kb);
                 }
             } else {
-                // In momentary mode, always play
-                this.playNote(noteKey, note, octave, keyEl);
+                this.playNote(noteKey, note, octave, keyEl, kb);
             }
         },
 
-        handleKeyRelease(keyEl) {
+        handleKeyRelease(keyEl, kb) {
             const note = keyEl.dataset.note;
             const octave = parseInt(keyEl.dataset.octave);
             const noteKey = `${note}${octave}`;
 
-            // Only stop in momentary mode
-            if (!this.holdNotes && this.activeNotes.has(noteKey)) {
-                this.stopNote(noteKey, keyEl);
+            if (kb.activeNotes.has(noteKey)) {
+                this.stopNote(noteKey, keyEl, kb);
             }
         },
 
-        playNote(noteKey, note, octave, keyEl) {
-            if (this.activeNotes.has(noteKey)) return;
+        playNote(noteKey, note, octave, keyEl, kb) {
+            if (kb.activeNotes.has(noteKey)) return;
 
             const frequency = NOTE_FREQUENCIES[note][octave];
 
@@ -1018,7 +1014,6 @@
             oscillator.type = this.waveform;
             oscillator.frequency.value = frequency;
 
-            // Smooth attack
             gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
             gainNode.gain.linearRampToValueAtTime(
                 this.volume * 0.3,
@@ -1030,17 +1025,16 @@
 
             oscillator.start();
 
-            this.activeNotes.set(noteKey, {oscillator, gainNode});
+            kb.activeNotes.set(noteKey, {oscillator, gainNode});
             keyEl.classList.add('active');
         },
 
-        stopNote(noteKey, keyEl) {
-            const noteData = this.activeNotes.get(noteKey);
+        stopNote(noteKey, keyEl, kb) {
+            const noteData = kb.activeNotes.get(noteKey);
             if (!noteData) return;
 
             const {oscillator, gainNode} = noteData;
 
-            // Smooth release
             gainNode.gain.setTargetAtTime(
                 0,
                 this.audioContext.currentTime,
@@ -1053,20 +1047,8 @@
                 gainNode.disconnect();
             }, 100);
 
-            this.activeNotes.delete(noteKey);
+            kb.activeNotes.delete(noteKey);
             keyEl.classList.remove('active');
-        },
-
-        stopAllNotes() {
-            const keys = this.keyboardEl.querySelectorAll('.piano-key');
-            this.activeNotes.forEach((noteData, noteKey) => {
-                const keyEl = Array.from(keys).find(k =>
-                    `${k.dataset.note}${k.dataset.octave}` === noteKey
-                );
-                if (keyEl) {
-                    this.stopNote(noteKey, keyEl);
-                }
-            });
         }
     };
 

@@ -198,15 +198,18 @@
                             <input type="range" id="chordVolumeSlider" min="0" max="100" value="50" step="1">
                             <span id="chordVolumeDisplay">50%</span>
                         </div>
-                        <div class="input-group toggle-group">
-                            <label>
-                                <input type="checkbox" id="holdNotesToggle" checked>
-                                <span>Hold Notes</span>
-                            </label>
+                    </div>
+                    <div class="keyboard-group">
+                        <div class="keyboard-label">Hold (Click to Toggle)</div>
+                        <div class="keyboard-container">
+                            <div id="pianoKeyboardHold" class="piano-keyboard"></div>
                         </div>
                     </div>
-                    <div class="keyboard-container">
-                        <div id="pianoKeyboard" class="piano-keyboard"></div>
+                    <div class="keyboard-group">
+                        <div class="keyboard-label">Momentary (Press &amp; Hold)</div>
+                        <div class="keyboard-container">
+                            <div id="pianoKeyboardMomentary" class="piano-keyboard"></div>
+                        </div>
                     </div>
                 </div>
             </section>
