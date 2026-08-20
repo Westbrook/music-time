@@ -843,7 +843,10 @@
 
         renderKeyboard() {
             let whiteKeyIndex = 0;
+            const whiteKeyWidth = 40;
+            const blackKeyWidth = 26;
 
+            // First pass: create all keys
             this.keyboard.forEach((keyData, index) => {
                 const key = document.createElement('div');
                 key.className = `piano-key ${keyData.isBlack ? 'black' : 'white'}`;
@@ -856,16 +859,38 @@
                 label.textContent = `${keyData.note}${keyData.octave}`;
                 key.appendChild(label);
 
-                if (keyData.isBlack) {
-                    // Position black keys between white keys
-                    const leftOffset = (whiteKeyIndex * 40) - 13;
-                    key.style.left = `${leftOffset}px`;
-                } else {
-                    key.style.left = `${whiteKeyIndex * 40}px`;
+                if (!keyData.isBlack) {
+                    // Position white keys sequentially
+                    key.style.left = `${whiteKeyIndex * whiteKeyWidth}px`;
                     whiteKeyIndex++;
                 }
 
                 this.keyboardEl.appendChild(key);
+            });
+
+            // Second pass: position black keys correctly relative to white keys
+            const blackKeys = this.keyboardEl.querySelectorAll('.piano-key.black');
+            blackKeys.forEach((blackKey) => {
+                const note = blackKey.dataset.note;
+                const octave = blackKey.dataset.octave;
+
+                // Find the white key to the left of this black key
+                // C# is between C and D, D# between D and E, etc.
+                let baseWhiteKeyIndex = 0;
+                const octaveOffset = (parseInt(octave) - 3) * 7; // 7 white keys per octave
+
+                switch(note) {
+                    case 'C#': baseWhiteKeyIndex = 0; break; // After C
+                    case 'D#': baseWhiteKeyIndex = 1; break; // After D
+                    case 'F#': baseWhiteKeyIndex = 3; break; // After F (skip E)
+                    case 'G#': baseWhiteKeyIndex = 4; break; // After G
+                    case 'A#': baseWhiteKeyIndex = 5; break; // After A
+                }
+
+                const totalWhiteKeyIndex = octaveOffset + baseWhiteKeyIndex;
+                // Position black key at the right edge of the white key to its left
+                const leftPos = (totalWhiteKeyIndex + 1) * whiteKeyWidth - (blackKeyWidth / 2);
+                blackKey.style.left = `${leftPos}px`;
             });
         },
 
