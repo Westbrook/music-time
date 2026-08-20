@@ -787,6 +787,255 @@
         return { hasLocalStorage, hasWebAudio };
     }
 
+    // ============================================================================
+    // Chordal Studies Module
+    // ============================================================================
+
+    const ChordalStudies = {
+        audioContext: null,
+        activeNotes: new Map(), // Map of note key -> {oscillator, gainNode}
+        holdNotes: true,
+        volume: 0.5,
+        waveform: 'sine',
+
+        // Two octaves: C3 to B4
+        keyboard: [
+            // Octave 3
+            {note: 'C', octave: 3, isBlack: false},
+            {note: 'C#', octave: 3, isBlack: true},
+            {note: 'D', octave: 3, isBlack: false},
+            {note: 'D#', octave: 3, isBlack: true},
+            {note: 'E', octave: 3, isBlack: false},
+            {note: 'F', octave: 3, isBlack: false},
+            {note: 'F#', octave: 3, isBlack: true},
+            {note: 'G', octave: 3, isBlack: false},
+            {note: 'G#', octave: 3, isBlack: true},
+            {note: 'A', octave: 3, isBlack: false},
+            {note: 'A#', octave: 3, isBlack: true},
+            {note: 'B', octave: 3, isBlack: false},
+            // Octave 4
+            {note: 'C', octave: 4, isBlack: false},
+            {note: 'C#', octave: 4, isBlack: true},
+            {note: 'D', octave: 4, isBlack: false},
+            {note: 'D#', octave: 4, isBlack: true},
+            {note: 'E', octave: 4, isBlack: false},
+            {note: 'F', octave: 4, isBlack: false},
+            {note: 'F#', octave: 4, isBlack: true},
+            {note: 'G', octave: 4, isBlack: false},
+            {note: 'G#', octave: 4, isBlack: true},
+            {note: 'A', octave: 4, isBlack: false},
+            {note: 'A#', octave: 4, isBlack: true},
+            {note: 'B', octave: 4, isBlack: false},
+        ],
+
+        init() {
+            this.keyboardEl = document.getElementById('pianoKeyboard');
+            this.instrumentSelect = document.getElementById('instrumentSelect');
+            this.volumeSlider = document.getElementById('chordVolumeSlider');
+            this.volumeDisplay = document.getElementById('chordVolumeDisplay');
+            this.holdToggle = document.getElementById('holdNotesToggle');
+
+            if (!this.keyboardEl) return;
+
+            this.renderKeyboard();
+            this.attachEventListeners();
+        },
+
+        renderKeyboard() {
+            let whiteKeyIndex = 0;
+
+            this.keyboard.forEach((keyData, index) => {
+                const key = document.createElement('div');
+                key.className = `piano-key ${keyData.isBlack ? 'black' : 'white'}`;
+                key.dataset.note = keyData.note;
+                key.dataset.octave = keyData.octave;
+                key.dataset.index = index;
+
+                const label = document.createElement('span');
+                label.className = 'piano-key-label';
+                label.textContent = `${keyData.note}${keyData.octave}`;
+                key.appendChild(label);
+
+                if (keyData.isBlack) {
+                    // Position black keys between white keys
+                    const leftOffset = (whiteKeyIndex * 40) - 13;
+                    key.style.left = `${leftOffset}px`;
+                } else {
+                    key.style.left = `${whiteKeyIndex * 40}px`;
+                    whiteKeyIndex++;
+                }
+
+                this.keyboardEl.appendChild(key);
+            });
+        },
+
+        attachEventListeners() {
+            // Instrument selection
+            this.instrumentSelect.addEventListener('change', (e) => {
+                this.waveform = e.target.value;
+                // Update all active oscillators
+                this.activeNotes.forEach((noteData) => {
+                    noteData.oscillator.type = this.waveform;
+                });
+            });
+
+            // Volume control
+            this.volumeSlider.addEventListener('input', (e) => {
+                this.volume = e.target.value / 100;
+                this.volumeDisplay.textContent = `${e.target.value}%`;
+                // Update all active gain nodes
+                this.activeNotes.forEach((noteData) => {
+                    noteData.gainNode.gain.setTargetAtTime(
+                        this.volume * 0.3,
+                        this.audioContext?.currentTime || 0,
+                        0.01
+                    );
+                });
+            });
+
+            // Hold toggle
+            this.holdToggle.addEventListener('change', (e) => {
+                this.holdNotes = e.target.checked;
+                if (!this.holdNotes) {
+                    // Stop all notes when switching to momentary mode
+                    this.stopAllNotes();
+                }
+            });
+
+            // Keyboard interactions
+            const keys = this.keyboardEl.querySelectorAll('.piano-key');
+            keys.forEach(key => {
+                // Mouse events
+                key.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    this.handleKeyPress(key);
+                });
+
+                key.addEventListener('mouseup', (e) => {
+                    e.preventDefault();
+                    if (!this.holdNotes) {
+                        this.handleKeyRelease(key);
+                    }
+                });
+
+                key.addEventListener('mouseleave', (e) => {
+                    if (!this.holdNotes) {
+                        this.handleKeyRelease(key);
+                    }
+                });
+
+                // Touch events
+                key.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.handleKeyPress(key);
+                });
+
+                key.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    if (!this.holdNotes) {
+                        this.handleKeyRelease(key);
+                    }
+                });
+            });
+        },
+
+        handleKeyPress(keyEl) {
+            const note = keyEl.dataset.note;
+            const octave = parseInt(keyEl.dataset.octave);
+            const noteKey = `${note}${octave}`;
+
+            // Initialize audio context on first interaction
+            if (!this.audioContext) {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            // If in hold mode, toggle the note
+            if (this.holdNotes) {
+                if (this.activeNotes.has(noteKey)) {
+                    this.stopNote(noteKey, keyEl);
+                } else {
+                    this.playNote(noteKey, note, octave, keyEl);
+                }
+            } else {
+                // In momentary mode, always play
+                this.playNote(noteKey, note, octave, keyEl);
+            }
+        },
+
+        handleKeyRelease(keyEl) {
+            const note = keyEl.dataset.note;
+            const octave = parseInt(keyEl.dataset.octave);
+            const noteKey = `${note}${octave}`;
+
+            // Only stop in momentary mode
+            if (!this.holdNotes && this.activeNotes.has(noteKey)) {
+                this.stopNote(noteKey, keyEl);
+            }
+        },
+
+        playNote(noteKey, note, octave, keyEl) {
+            if (this.activeNotes.has(noteKey)) return;
+
+            const frequency = NOTE_FREQUENCIES[note][octave];
+
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+
+            oscillator.type = this.waveform;
+            oscillator.frequency.value = frequency;
+
+            // Smooth attack
+            gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(
+                this.volume * 0.3,
+                this.audioContext.currentTime + 0.05
+            );
+
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+
+            oscillator.start();
+
+            this.activeNotes.set(noteKey, {oscillator, gainNode});
+            keyEl.classList.add('active');
+        },
+
+        stopNote(noteKey, keyEl) {
+            const noteData = this.activeNotes.get(noteKey);
+            if (!noteData) return;
+
+            const {oscillator, gainNode} = noteData;
+
+            // Smooth release
+            gainNode.gain.setTargetAtTime(
+                0,
+                this.audioContext.currentTime,
+                0.05
+            );
+
+            setTimeout(() => {
+                oscillator.stop();
+                oscillator.disconnect();
+                gainNode.disconnect();
+            }, 100);
+
+            this.activeNotes.delete(noteKey);
+            keyEl.classList.remove('active');
+        },
+
+        stopAllNotes() {
+            const keys = this.keyboardEl.querySelectorAll('.piano-key');
+            this.activeNotes.forEach((noteData, noteKey) => {
+                const keyEl = Array.from(keys).find(k =>
+                    `${k.dataset.note}${k.dataset.octave}` === noteKey
+                );
+                if (keyEl) {
+                    this.stopNote(noteKey, keyEl);
+                }
+            });
+        }
+    };
+
     // Initialize all modules when DOM is ready
     document.addEventListener('DOMContentLoaded', () => {
         const support = checkBrowserSupport();
@@ -795,6 +1044,7 @@
         PracticeHistory.init();
         Metronome.init();
         TuningTone.init();
+        ChordalStudies.init();
     });
 
 })();

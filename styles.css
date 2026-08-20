@@ -1059,7 +1059,161 @@ footer {
     font-size: 0.9375rem;
 }
 
+/* Chordal Studies Section */
+.chordal-section {
+    grid-column: span 2;
+}
+
+.chord-controls {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.toggle-group {
+    display: flex;
+    align-items: center;
+}
+
+.toggle-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.keyboard-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 1rem 0;
+}
+
+.piano-keyboard {
+    display: flex;
+    position: relative;
+    height: 180px;
+    min-width: 840px;
+    margin: 0 auto;
+}
+
+.piano-key {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.05s;
+    border: 1px solid var(--border-color);
+    box-sizing: border-box;
+}
+
+.piano-key.white {
+    width: 40px;
+    height: 180px;
+    background: white;
+    z-index: 1;
+    border-radius: 0 0 var(--radius-xs) var(--radius-xs);
+}
+
+.piano-key.black {
+    width: 26px;
+    height: 110px;
+    background: linear-gradient(180deg, #1a1a1a 0%, #000 100%);
+    z-index: 2;
+    position: absolute;
+    border-radius: 0 0 var(--radius-xs) var(--radius-xs);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.piano-key.white:hover {
+    background: #f0f0f0;
+}
+
+.piano-key.black:hover {
+    background: linear-gradient(180deg, #2a2a2a 0%, #111 100%);
+}
+
+.piano-key.active {
+    background: var(--primary-color) !important;
+    transform: translateY(2px);
+}
+
+.piano-key.white.active {
+    box-shadow: inset 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.piano-key.black.active {
+    box-shadow: inset 0 2px 8px rgba(0, 122, 255, 0.5);
+}
+
+.piano-key-label {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: #666;
+    pointer-events: none;
+}
+
+.piano-key.black .piano-key-label {
+    color: rgba(255, 255, 255, 0.6);
+    bottom: 6px;
+}
+
+.piano-key.active .piano-key-label {
+    color: white;
+}
+
+@media (prefers-color-scheme: dark) {
+    .piano-key.white {
+        background: #f5f5f5;
+        border-color: #666;
+    }
+
+    .piano-key.white:hover {
+        background: #e5e5e5;
+    }
+
+    .piano-key-label {
+        color: #888;
+    }
+}
+
 /* Responsive */
+@media (max-width: 768px) {
+    .chordal-section {
+        grid-column: span 1;
+    }
+
+    .chord-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .piano-keyboard {
+        min-width: 700px;
+    }
+
+    .piano-key.white {
+        width: 33px;
+    }
+
+    .piano-key.black {
+        width: 22px;
+        height: 95px;
+    }
+}
+
 @media (max-width: 768px) {
     .app-icon {
         width: 64px;

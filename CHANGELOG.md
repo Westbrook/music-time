@@ -1,5 +1,83 @@
 # Changelog
 
+## Version 1.6.0 - Chordal Studies Section (2026-08-10)
+
+### 🎹 **New Feature: Chordal Studies**
+
+Added a comprehensive chordal practice tool with an interactive two-octave piano keyboard.
+
+**Features**:
+- ✅ Two-octave piano keyboard (C3 to B4, 24 keys)
+- ✅ Visual piano key layout (white and black keys)
+- ✅ Three instrument sounds (Piano/Sine, Soft/Triangle, Organ/Square)
+- ✅ Hold mode: Click to toggle notes on/off
+- ✅ Momentary mode: Notes only play while pressed
+- ✅ Volume control
+- ✅ Multiple simultaneous notes (polyphonic)
+- ✅ Touch and mouse support
+- ✅ Desktop-optimized: Spans two columns for wider keyboard
+
+**Keyboard Layout**:
+```
+┌─────────────────────────────────────────┐
+│ Chordal Studies                         │
+├─────────────────────────────────────────┤
+│ [Instrument ▼] [Volume ━━━━◉─] [✓Hold] │
+│                                          │
+│  Two-Octave Piano Keyboard:             │
+│  ┌──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┐ │
+│  │C │C#│D │D#│E │F │F#│G │G#│A │A#│B │ │ Octave 3
+│  └──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┘ │
+│  ┌──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┐ │
+│  │C │C#│D │D#│E │F │F#│G │G#│A │A#│B │ │ Octave 4
+│  └──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┘ │
+└─────────────────────────────────────────┘
+```
+
+**Instrument Sounds**:
+1. **Piano (Sine)**: Smooth, pure tone
+2. **Soft (Triangle)**: Mellow, warm timbre
+3. **Organ (Square)**: Bright, rich harmonics
+
+**Hold vs. Momentary**:
+```
+Hold Mode (checkbox ON):
+- Click key → Note plays and stays on
+- Click again → Note stops
+- Build chords by clicking multiple keys
+
+Momentary Mode (checkbox OFF):
+- Press key → Note plays
+- Release → Note stops
+- Good for practicing chord voicings
+```
+
+**Technical Implementation**:
+- Web Audio API with polyphonic oscillator management
+- Active note tracking with Map structure
+- Smooth attack/release envelopes (50ms)
+- Real-time waveform switching
+- Touch-optimized event handling
+
+**Desktop Layout**:
+```css
+.chordal-section {
+  grid-column: span 2;  /* Takes width of two cards */
+}
+```
+
+**Mobile Layout**:
+- Stacks to single column
+- Horizontal scroll for keyboard
+- Touch-optimized key sizes
+
+**Responsive Design**:
+- Desktop: 40px white keys, 26px black keys
+- Mobile: 33px white keys, 22px black keys
+- Keyboard scrolls horizontally on narrow screens
+
+---
+
 ## Version 1.5.4 - Button Height Normalization (2026-08-10)
 
 ### 📏 **Consistent Button Heights**

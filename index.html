@@ -179,6 +179,37 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Chordal Studies Section -->
+            <section class="card chordal-section">
+                <h2>Chordal Studies</h2>
+                <div class="card-body">
+                    <div class="chord-controls">
+                        <div class="input-group">
+                            <label for="instrumentSelect">Instrument:</label>
+                            <select id="instrumentSelect">
+                                <option value="sine">Piano (Sine)</option>
+                                <option value="triangle">Soft (Triangle)</option>
+                                <option value="square">Organ (Square)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="chordVolumeSlider">Volume:</label>
+                            <input type="range" id="chordVolumeSlider" min="0" max="100" value="50" step="1">
+                            <span id="chordVolumeDisplay">50%</span>
+                        </div>
+                        <div class="input-group toggle-group">
+                            <label>
+                                <input type="checkbox" id="holdNotesToggle" checked>
+                                <span>Hold Notes</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="keyboard-container">
+                        <div id="pianoKeyboard" class="piano-keyboard"></div>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <footer>
