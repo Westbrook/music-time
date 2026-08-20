@@ -1091,18 +1091,18 @@ footer {
 }
 
 .keyboard-container {
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: hidden;
     padding: 0.5rem 0;
-    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .piano-keyboard {
     display: block;
     position: relative;
     height: 180px;
-    width: 560px; /* 14 white keys * 40px */
-    margin: 0 auto;
+    width: 560px; /* 14 white keys * 40px, scaled via JS to fit container */
+    margin: 0;
 }
 
 .piano-key {

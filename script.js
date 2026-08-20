@@ -846,6 +846,24 @@
 
             this.keyboards.forEach(kb => this.renderKeyboard(kb));
             this.attachEventListeners();
+            this.fitKeyboardsToContainer();
+            window.addEventListener('resize', () => this.fitKeyboardsToContainer());
+        },
+
+        // Scale each keyboard down so it fits its container width without horizontal scroll.
+        // Uses CSS transform + adjusted height so surrounding layout still measures correctly.
+        fitKeyboardsToContainer() {
+            const NATIVE_WIDTH = 560;
+            const NATIVE_HEIGHT = 180;
+            this.keyboards.forEach(kb => {
+                const container = kb.el.parentElement;
+                if (!container) return;
+                const available = container.clientWidth;
+                const scale = Math.min(1, available / NATIVE_WIDTH);
+                kb.el.style.transform = `scale(${scale})`;
+                kb.el.style.transformOrigin = 'top left';
+                container.style.height = `${NATIVE_HEIGHT * scale}px`;
+            });
         },
 
         renderKeyboard(kb) {
