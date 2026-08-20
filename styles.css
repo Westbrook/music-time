@@ -1115,6 +1115,7 @@ footer {
 }
 
 .piano-key.white {
+    position: absolute;
     width: 40px;
     height: 180px;
     background: white;
