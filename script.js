@@ -357,6 +357,13 @@
             this.dailyList = document.getElementById('dailyList');
 
             this.refresh();
+
+            // Refresh when the page becomes visible again so day boundaries
+            // and time-dependent displays reflect the current date/time.
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) this.refresh();
+            });
+            window.addEventListener('focus', () => this.refresh());
         },
 
         refresh() {
