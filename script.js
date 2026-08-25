@@ -348,15 +348,11 @@
 
     const PracticeHistory = {
         todayDisplay: null,
-        minutesDisplay: null,
-        hoursDisplay: null,
         weekDisplay: null,
         dailyList: null,
 
         init() {
             this.todayDisplay = document.getElementById('todayTotal');
-            this.minutesDisplay = document.getElementById('minutesValue');
-            this.hoursDisplay = document.getElementById('hoursValue');
             this.weekDisplay = document.getElementById('weekTotal');
             this.dailyList = document.getElementById('dailyList');
 
@@ -383,12 +379,6 @@
             // Calculate today's total (including active session)
             const todaySeconds = (dailyData[today] || 0) + activeTime;
             this.todayDisplay.textContent = formatDurationShort(todaySeconds);
-
-            // Split today's time into hours and minutes for the dedicated rings
-            const todayHours = Math.floor(todaySeconds / 3600);
-            const todayMinutes = Math.floor((todaySeconds % 3600) / 60);
-            if (this.minutesDisplay) this.minutesDisplay.textContent = todayMinutes;
-            if (this.hoursDisplay) this.hoursDisplay.textContent = todayHours;
 
             // Calculate 7-day total and build daily list
             const last7Days = [];
@@ -437,43 +427,37 @@
         },
 
         updateStatRings(todaySeconds, weekSeconds) {
-            const circumference = 327; // 2 * PI * 52
+            const outerCircumference = 327; // 2 * PI * 52
+            const innerCircumference = 277; // 2 * PI * 44
 
-            // Today ring - goal is 1 hour (3600 seconds)
+            // Today: outer ring loops 0-8 complete hours, inner ring shows current minutes (0-59)
+            const todayHours = Math.floor(todaySeconds / 3600) % 8;
+            const todayMinutes = Math.floor((todaySeconds % 3600) / 60);
+
             const todayRing = document.getElementById('todayRing');
             if (todayRing) {
-                const goalToday = 3600; // 1 hour
-                const progress = Math.min(todaySeconds / goalToday, 1);
-                const offset = circumference - (progress * circumference);
-                todayRing.style.strokeDashoffset = offset;
+                const progress = todayHours / 8;
+                todayRing.style.strokeDashoffset = outerCircumference - (progress * outerCircumference);
+            }
+            const todayMinutesRing = document.getElementById('todayMinutesRing');
+            if (todayMinutesRing) {
+                const progress = todayMinutes / 60;
+                todayMinutesRing.style.strokeDashoffset = innerCircumference - (progress * innerCircumference);
             }
 
-            // Minutes ring (inner concentric) - fills from 0 to 60 with the current minutes portion of today's time
-            const minutesRing = document.getElementById('minutesRing');
-            if (minutesRing) {
-                const minutesCircumference = 277; // 2 * PI * 44 (inner ring radius)
-                const minutes = Math.floor((todaySeconds % 3600) / 60);
-                const progress = Math.min(minutes / 60, 1);
-                const offset = minutesCircumference - (progress * minutesCircumference);
-                minutesRing.style.strokeDashoffset = offset;
-            }
+            // 7-day Total: outer ring loops 0-56 complete hours, inner ring shows current minutes (0-59)
+            const weekHours = Math.floor(weekSeconds / 3600) % 56;
+            const weekMinutes = Math.floor((weekSeconds % 3600) / 60);
 
-            // Hours ring (outer concentric) - fills from 0 to 24 with the current hours portion of today's time
-            const hoursRing = document.getElementById('hoursRing');
-            if (hoursRing) {
-                const hours = Math.floor(todaySeconds / 3600);
-                const progress = Math.min(hours / 24, 1);
-                const offset = circumference - (progress * circumference);
-                hoursRing.style.strokeDashoffset = offset;
-            }
-
-            // Week ring - goal is 7 hours (25200 seconds)
             const weekRing = document.getElementById('weekRing');
             if (weekRing) {
-                const goalWeek = 25200; // 7 hours
-                const progress = Math.min(weekSeconds / goalWeek, 1);
-                const offset = circumference - (progress * circumference);
-                weekRing.style.strokeDashoffset = offset;
+                const progress = weekHours / 56;
+                weekRing.style.strokeDashoffset = outerCircumference - (progress * outerCircumference);
+            }
+            const weekMinutesRing = document.getElementById('weekMinutesRing');
+            if (weekMinutesRing) {
+                const progress = weekMinutes / 60;
+                weekMinutesRing.style.strokeDashoffset = innerCircumference - (progress * innerCircumference);
             }
         }
     };

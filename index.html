@@ -73,9 +73,13 @@
                 <div class="card-body">
                     <div class="stats-grid">
                         <div class="stat-item">
-                            <svg class="stat-ring" viewBox="0 0 120 120">
+                            <svg class="stat-ring stat-ring-concentric" viewBox="0 0 120 120">
+                                <!-- Hours ring (outer) -->
                                 <circle class="stat-ring-bg" cx="60" cy="60" r="52" />
-                                <circle class="stat-ring-progress" cx="60" cy="60" r="52" id="todayRing" />
+                                <circle class="stat-ring-progress stat-ring-hours" cx="60" cy="60" r="52" id="todayRing" />
+                                <!-- Minutes ring (inner) -->
+                                <circle class="stat-ring-bg stat-ring-bg-inner" cx="60" cy="60" r="44" />
+                                <circle class="stat-ring-progress stat-ring-minutes" cx="60" cy="60" r="44" id="todayMinutesRing" />
                             </svg>
                             <div class="stat-content">
                                 <div class="stat-label">Today</div>
@@ -86,20 +90,10 @@
                             <svg class="stat-ring stat-ring-concentric" viewBox="0 0 120 120">
                                 <!-- Hours ring (outer) -->
                                 <circle class="stat-ring-bg" cx="60" cy="60" r="52" />
-                                <circle class="stat-ring-progress stat-ring-hours" cx="60" cy="60" r="52" id="hoursRing" />
+                                <circle class="stat-ring-progress stat-ring-hours" cx="60" cy="60" r="52" id="weekRing" />
                                 <!-- Minutes ring (inner) -->
                                 <circle class="stat-ring-bg stat-ring-bg-inner" cx="60" cy="60" r="44" />
-                                <circle class="stat-ring-progress stat-ring-minutes" cx="60" cy="60" r="44" id="minutesRing" />
-                            </svg>
-                            <div class="stat-content">
-                                <div class="stat-label">Hours &amp; Minutes</div>
-                                <div class="stat-value"><span id="hoursValue">0</span>h <span id="minutesValue">0</span>m</div>
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <svg class="stat-ring" viewBox="0 0 120 120">
-                                <circle class="stat-ring-bg" cx="60" cy="60" r="52" />
-                                <circle class="stat-ring-progress" cx="60" cy="60" r="52" id="weekRing" />
+                                <circle class="stat-ring-progress stat-ring-minutes" cx="60" cy="60" r="44" id="weekMinutesRing" />
                             </svg>
                             <div class="stat-content">
                                 <div class="stat-label">7-Day Total</div>
