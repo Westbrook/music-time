@@ -430,33 +430,33 @@
             const outerCircumference = 327; // 2 * PI * 52
             const innerCircumference = 277; // 2 * PI * 44
 
-            // Today: outer ring loops 0-8 complete hours, inner ring shows current minutes (0-59)
-            const todayHours = Math.floor(todaySeconds / 3600) % 8;
-            const todayMinutes = Math.floor((todaySeconds % 3600) / 60);
+            // Today: outer counts complete hours (loops every 8), inner counts complete minutes (loops every 480 = 8h)
+            const todayTotalHours = Math.floor(todaySeconds / 3600);
+            const todayTotalMinutes = Math.floor(todaySeconds / 60);
 
             const todayRing = document.getElementById('todayRing');
             if (todayRing) {
-                const progress = todayHours / 8;
+                const progress = (todayTotalHours % 8) / 8;
                 todayRing.style.strokeDashoffset = outerCircumference - (progress * outerCircumference);
             }
             const todayMinutesRing = document.getElementById('todayMinutesRing');
             if (todayMinutesRing) {
-                const progress = todayMinutes / 60;
+                const progress = (todayTotalMinutes % 480) / 480;
                 todayMinutesRing.style.strokeDashoffset = innerCircumference - (progress * innerCircumference);
             }
 
-            // 7-day Total: outer ring loops 0-56 complete hours, inner ring shows current minutes (0-59)
-            const weekHours = Math.floor(weekSeconds / 3600) % 56;
-            const weekMinutes = Math.floor((weekSeconds % 3600) / 60);
+            // 7-day Total: outer counts complete hours (loops every 56), inner counts complete minutes (loops every 3360 = 56h)
+            const weekTotalHours = Math.floor(weekSeconds / 3600);
+            const weekTotalMinutes = Math.floor(weekSeconds / 60);
 
             const weekRing = document.getElementById('weekRing');
             if (weekRing) {
-                const progress = weekHours / 56;
+                const progress = (weekTotalHours % 56) / 56;
                 weekRing.style.strokeDashoffset = outerCircumference - (progress * outerCircumference);
             }
             const weekMinutesRing = document.getElementById('weekMinutesRing');
             if (weekMinutesRing) {
-                const progress = weekMinutes / 60;
+                const progress = (weekTotalMinutes % 3360) / 3360;
                 weekMinutesRing.style.strokeDashoffset = innerCircumference - (progress * innerCircumference);
             }
         }
