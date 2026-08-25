@@ -448,16 +448,17 @@
                 todayRing.style.strokeDashoffset = offset;
             }
 
-            // Minutes ring - fills from 0 to 60 with the current minutes portion of today's time
+            // Minutes ring (inner concentric) - fills from 0 to 60 with the current minutes portion of today's time
             const minutesRing = document.getElementById('minutesRing');
             if (minutesRing) {
+                const minutesCircumference = 277; // 2 * PI * 44 (inner ring radius)
                 const minutes = Math.floor((todaySeconds % 3600) / 60);
                 const progress = Math.min(minutes / 60, 1);
-                const offset = circumference - (progress * circumference);
+                const offset = minutesCircumference - (progress * minutesCircumference);
                 minutesRing.style.strokeDashoffset = offset;
             }
 
-            // Hours ring - fills from 0 to 24 with the current hours portion of today's time
+            // Hours ring (outer concentric) - fills from 0 to 24 with the current hours portion of today's time
             const hoursRing = document.getElementById('hoursRing');
             if (hoursRing) {
                 const hours = Math.floor(todaySeconds / 3600);

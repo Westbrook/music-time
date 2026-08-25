@@ -562,7 +562,7 @@ main {
 /* History Section */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 0.375rem;
     margin-bottom: 1.5rem;
     background: var(--bg-color);
@@ -644,9 +644,30 @@ main {
     transition: stroke-dashoffset 0.3s ease;
 }
 
+/* Concentric stat-ring: outer hours + inner minutes (matches timer's ring style) */
+.stat-ring-hours {
+    stroke: var(--success-color);
+    stroke-dasharray: 327; /* 2 * PI * 52 */
+    stroke-dashoffset: 327;
+}
+
+.stat-ring-minutes {
+    stroke: #5ac8fa; /* SF Teal - matches timer's minutes ring */
+    stroke-dasharray: 277; /* 2 * PI * 44 */
+    stroke-dashoffset: 277;
+}
+
 @media (prefers-color-scheme: dark) {
     .stat-ring-progress {
         filter: drop-shadow(0 0 4px var(--primary-color));
+    }
+
+    .stat-ring-hours {
+        filter: drop-shadow(0 0 4px var(--success-color));
+    }
+
+    .stat-ring-minutes {
+        filter: drop-shadow(0 0 4px #5ac8fa);
     }
 
     .stat-ring-bg {
