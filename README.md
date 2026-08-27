@@ -1,162 +1,179 @@
-# 🎺 Trombone Practice Timer
+# Trombone Practice Timer
 
-A fully-featured, locally-hostable practice timer designed for trombone players (and any musician). Built with vanilla HTML, CSS, and JavaScript—no frameworks, no dependencies, no build step required.
+A local practice timer with seven-day history, a metronome, tuning tones, and chord
+keyboards. The app uses plain HTML, CSS, and JavaScript: no build step, runtime
+dependencies, account, or backend service.
 
-## Features
+## Run locally
 
-### ⏱️ Practice Stopwatch
+From the project directory, start a static server with Python 3:
 
-- **Start, Pause, Resume, and Done** controls with clear intent
-- Clear stopwatch-style display (HH:MM:SS)
-- **Automatic session persistence**—survive page refreshes without losing your practice time
-- **Paused sessions restored** on page reload
-- Click "Done" to save your practice session and reset the timer
-- Helpful hints guide you through the workflow
+```sh
+python3 -m http.server 8000 --bind 127.0.0.1
+```
 
-### 📊 Local Practice History
+Open [the practice timer](http://127.0.0.1:8000/). Keep the server running while
+loading or reloading the page; stop it with Ctrl+C. Any static server can serve
+these files. Node and npm are only needed for [development checks](CONTRIBUTING.md#automated-checks).
 
-- Track daily practice totals using browser local storage
-- **Live updates**: Today's total updates in real-time as you practice
-- **Active session included**: Running timer adds to daily totals automatically
-- Rolling 7-day history with daily breakdown
-- Weekly total calculation
-- Days defined by local midnight (handles timezone and DST transitions)
-- Versioned storage format resilient to malformed data
-- No server, no account, no tracking—all data stays on your device
+For a quick try, you can open [index.html](index.html) directly. Use the server
+for regular practice: browser storage behavior for `file:` URLs is not guaranteed.
+See [MDN's localStorage guidance](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
 
-### 🎵 Metronome
+Use a current browser with JavaScript and Pointer Events. Audio requires Web
+Audio; saving requires localStorage. Audio restrictions do not disable the timer,
+and storage problems are reported separately on the page. There are no polyfills;
+older-version compatibility has not been verified.
 
-- Accurate Web Audio API-based timing (not relying on `setInterval` alone)
-- **Crisp, percussive tones** with sharp attack for clear timing
-- **Volume control** (0-100%) for comfortable practice levels
-- BPM range: 40–240
-- Synchronized slider and numeric input
-- Configurable beats per measure (1–16)
-- Visual beat indicators with accent on beat 1
-- Audio accent on the first beat of each measure
-- Designed to support future features: multiple tones, custom meters, subdivisions, polymeter
+## Practice workflow
 
-### 🎼 Tuning Tone Generator
+1. Choose **Start** to begin.
+2. Choose **Pause** for a break; **Start** resumes the same session.
+3. Choose **Done** to save the session and return the display to `00:00:00`.
 
-- Default pitch: F3 (174.61 Hz)
-- Note/octave selection (C2–B5)
-- Adjustable volume
-- Smooth envelope on start/stop to prevent clicks
-- Displays current note name and frequency
+There is no separate Reset button. Done becomes available for any positive
+duration, including a session shorter than one displayed second.
 
-## Browser Requirements
+Running sessions continue counting while the page is closed and catch up on
+return. Paused sessions also restore, but do not accrue more time. Pause or finish
+the session before leaving if you do not want the closed-page interval counted.
 
-- **Modern browser** with:
-  - Web Audio API support (Chrome, Firefox, Safari, Edge)
-  - LocalStorage API
-  - ES6 JavaScript support
+History includes the accrued active session, even while paused. It shows today
+and the previous six local calendar days, splitting practice at local midnight.
+History displays whole minutes: less than a minute appears as `0m`, without
+discarding the saved seconds. The seven-day total is calculated before rounding
+down, so it can exceed the sum of the individually rounded daily labels.
 
-Graceful degradation: if Web Audio or LocalStorage is unavailable, warnings are logged to the console.
+## Audio tools
 
-## Installation & Usage
+- **Metronome:** 40–240 BPM, initially 120, with 1–16 beats per measure. The first
+  beat is accented. Changing the meter restarts on a downbeat; Stop cancels queued
+  clicks. Late callbacks skip missed beats instead of playing a catch-up burst.
+- **Tuning Tone:** select C2–B5; the default is F3 at 174.61 Hz. The reference uses
+  A4 = 440 Hz. Note changes and volume adjustments apply to a playing tone.
+- **Chordal Studies:** two independent keyboards cover C3–B4, with sine, triangle,
+  or square waveforms and a shared chord volume.
 
-### Running Locally
+Start at a comfortable, low volume. Each audio tool has its own controls;
+Start/Pause/Done on the practice timer do not start or stop sound.
 
-1. **Clone or download** this repository
-2. **Open **`index.html` in your browser:
+### Chord keyboards
 
-- Double-click the file, or
-- Drag it into a browser window, or
-- Serve it with a local web server (optional but recommended):`# Python 3python -m http.server 8000
+**Hold** toggles a note on or off when clicked, tapped, or activated.
+**Momentary** plays while a pointer, Enter, or Space is held; releasing the last
+input holding that note stops it.
 
-# Node.js (with npx)
+| Control                       | Action                                                     |
+| ----------------------------- | ---------------------------------------------------------- |
+| Tab / Shift+Tab               | Move between page controls; each keyboard has one Tab stop |
+| Left / Right                  | Move to the adjacent note without playing it               |
+| Home / End                    | Move to the first / last note without playing it           |
+| Enter / Space                 | Toggle a Hold note, or press/release a Momentary note      |
+| Escape within Chordal Studies | Stop all chord notes, including pending starts             |
 
-npx serve .`3. **Start practicing!**
+**Stop chord notes** also silences both keyboards without affecting the timer,
+tuning tone, or metronome. Escape works from the waveform selector, chord volume,
+and Stop button as well as either keyboard, without resetting settings. Outside
+Chordal Studies, Escape keeps its normal meaning.
 
-No installation, no dependencies, no internet connection required after loading.
+Click-only assistive activation of a Momentary key plays a brief 300ms audition.
+That audition keeps its starting volume and waveform; the next note uses the
+latest settings. A physical press can replace an audition and sustain the note.
 
-### Files
+Momentary notes release when the window loses focus or the page is hidden. Hold,
+tuning, and metronome sound may continue in the background, subject to browser
+policy. A browser audio interruption stops playback; start it again explicitly.
+Leaving the page stops all audio, and returning does not automatically restart it.
 
-- `index.html` — Main page structure
-- `styles.css` — Responsive styling, accessibility features
-- `script.js` — Application logic (stopwatch, storage, metronome, tuner)
+## Inputs and ring displays
 
-## Technical Details
+- Tempo and meter use whole numbers. Valid edits apply immediately. Blank,
+  fractional, or out-of-range drafts leave the previous setting active until you
+  press Enter or leave the field. Committing rounds and clamps a finite number;
+  blank or invalid text restores the last valid setting.
+- Metronome and Tuning Tone use forms: submitting starts or stops that sound
+  without reloading the page. Enter in either tempo/meter number field commits
+  both values and starts or stops the metronome once.
+- All three volume controls use whole percentages from 0–100.
+- Timer rings, inside out, show seconds out of 60, minutes out of 60, and whole
+  hours out of 8. Seconds and minutes repeat; hours stay full at 8. There is no
+  days ring, and elapsed-time text continues counting.
+- Today's history has two rings: minutes out of 60 and whole hours out of 8.
+  Minutes repeat each hour; the hours ring stays full at 8.
+- The seven-day total has three rings: minutes out of 60, whole hours out of 24,
+  and completed 24-hour days out of 7. Minutes and hours repeat at their limits;
+  days stay full at 7. Text totals remain uncapped. These are duration display
+  scales, not practice goals, counts of dates practiced, or streak indicators.
 
-### Storage Behavior
+The interface follows light/dark preferences and includes visible keyboard focus,
+reduced-motion styles, and forced-colors support. Narrow piano containers scroll
+sideways while their keys retain their size. Timer announcements describe state
+changes, not every tick. Device and assistive-technology checks are documented in
+the [manual checklist](TEST_CHECKLIST.md), not implied by these features.
 
-- Practice data is stored in `localStorage` under the key `trombonePracticeData`
-- Storage format is versioned (current version: 1)
-- Records older than 7 days are automatically expired
-- Daily totals are keyed by ISO date string (YYYY-MM-DD) derived from local midnight
-- Active sessions are persisted before page unload to prevent accidental data loss
+## Saved data and recovery
 
-### Date & Time Handling
+Practice data stays in browser localStorage; the app does not send it to a
+service or include analytics, third-party scripts, or account sync.
 
-- Days begin at local midnight (`00:00:00`) in the user's current timezone
-- Timezone changes and DST transitions are handled by browser `Date` APIs
-- Weekly total = sum of the last 7 calendar days including today
+Keep using the same browser profile and address. Storage is scoped to an
+[origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin)—scheme, host, and
+port—so `localhost`, `127.0.0.1`, different ports, and HTTP/HTTPS do not share
+history. Private-session data can disappear when that session ends, and clearing
+site data removes saved practice.
+[Browser storage behavior](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
 
-### Metronome Timing
+The app checkpoints an active session periodically and on lifecycle events.
+Saving is not guaranteed if the browser blocks storage or a write fails.
 
-- Uses Web Audio API's precise scheduling (not `setInterval` for audio)
-- Audio scheduled slightly ahead (100ms) using a 25ms lookahead interval
-- Visual indicators update via `setTimeout` synchronized to audio schedule
-- Crisp attack using square wave oscillator with 0.5ms rise time
-- Higher frequencies (800Hz/1200Hz) for percussive clarity
-- Volume-controlled gain envelope
+- **Save failed:** keep the page open. Done leaves the unsaved session paused and
+  available for retry. Retry Done when storage works again; do not clear site
+  data or reload as a first troubleshooting step.
+- **Data changed in another tab:** this tab pauses and blocks stale writes.
+  Record any unsaved local time outside the app and review both tabs before
+  reloading. Reload replaces this tab's state with the saved record and can
+  discard unsaved local time; the app does not merge competing sessions. Use one
+  timer tab at a time; simultaneous writers are not supported.
+- **Unrecognized saved-data version:** the app leaves it untouched and disables
+  practice writes. Use a compatible app version rather than overwriting it.
+- **Recovery notice:** upgrades or repairs retain a backup of the original saved
+  record before replacing it. Existing history dates are not shifted. The
+  successful confirmation clears on reload or when the affected dates leave the
+  seven-day history window, no later than seven local calendar days after recovery
+  is detected. Pending recovery warnings and save errors remain until resolved.
 
-### Tuning Tone
+On successful completion, completed records older than the visible seven-day
+window expire. Valid future-dated entries remain stored but hidden, since clock
+or timezone changes can put an existing record in the future. Recovery backups
+are not automatically expired. There is no export/import or backup-management UI;
+local recovery copies are not a substitute for an independent backup. Developers
+can find the exact schema and write rules in
+[session and storage rules](CONTRIBUTING.md#session-and-storage-rules).
 
-- Frequencies based on equal temperament, A4 = 440 Hz
-- Sine wave oscillator
-- Gain ramped over 15ms on start/stop to avoid clicks
-- Volume control adjusts gain from 0–30% of full scale
+## Offline and troubleshooting
 
-### Accessibility
+After its three local assets load, the page makes no further network requests
+for practice features. An already loaded page can keep working without internet
+access. There is no service worker or offline-cache guarantee: reloading or
+reopening a served URL still requires the files to be available.
 
-- Semantic HTML with ARIA where appropriate
-- Keyboard accessible controls
-- Visible focus states
-- Sufficient color contrast (WCAG AA)
-- Respects `prefers-reduced-motion` media query
+If sound does not start, check the tool's volume, device output, and visible audio
+notice, then try its Start control again. Browser autoplay and background-audio
+policies vary. If history looks empty, check the exact browser profile/address
+before changing data, and remember that sub-minute totals display as `0m`.
 
-### Mobile & iOS Support
+## Development and documentation
 
-- Fully responsive design (mobile, tablet, desktop)
-- Touch-friendly controls with large tap targets
-- **iOS safe area insets** - Content protected from Dynamic Island, notch, and rounded corners
-- Optimized for home screen installation on iOS
-- Theme color integration with iOS UI
+The browser loads [index.html](index.html), [styles.css](styles.css), and
+[script.js](script.js) directly. Development tools are separate from that runtime.
 
-### Performance & Offline
+| Document                                     | Purpose                                                            |
+| -------------------------------------------- | ------------------------------------------------------------------ |
+| [CONTRIBUTING.md](CONTRIBUTING.md)           | Setup, automated checks, architecture, and maintenance contracts   |
+| [TEST_CHECKLIST.md](TEST_CHECKLIST.md)       | Manual browser/device procedures and a results record              |
+| [CHANGELOG.md](CHANGELOG.md)                 | Current unreleased changes and history navigation                  |
+| [Historical archive](docs/archive/README.md) | Preserved older notes, not current specifications or test evidence |
 
-- Lightweight (no external dependencies)
-- Fully functional offline after initial load
-- Properly cleans up audio nodes, timers, and event listeners
-- No autoplay—audio only starts on explicit user interaction
-
-## Known Limitations & Assumptions
-
-- **BPM Range**: 40–240 (common musical range)
-- **Daily Rollover**: Midnight is determined by the browser's local timezone at the moment of calculation
-- **Browser Support**: Designed for modern browsers; no polyfills for older environments
-- **Storage Quota**: Uses browser localStorage (typically 5–10MB); practice history is small, but extreme edge cases (decades of daily data) are not tested
-- **No Export**: Practice data is not exportable in this version (could be added as a future enhancement)
-
-## Future Enhancements (Structured for Extension)
-
-The metronome is architected to support:
-
-- Multiple tone options (click, woodblock, beep, etc.)
-- Custom time signatures and meters
-- Subdivisions (eighth notes, triplets, etc.)
-- Polymeter support
-
-The codebase is modular and can be extended with:
-
-- CSV/JSON export of practice history
-- Practice goals and reminders
-- Additional tuning reference tones
-- Visual chromatic tuner
-
-## License
+## Use notice
 
 This project is provided as-is for personal and educational use.
-
-**Happy practicing! 🎺🎵**

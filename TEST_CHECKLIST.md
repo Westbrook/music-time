@@ -1,179 +1,186 @@
-# Testing Checklist for Trombone Practice Timer
+# Manual verification checklist
 
-## Pre-Flight Check
-- [ ] Open `index.html` in a modern browser (Chrome, Firefox, Safari, Edge)
-- [ ] Open browser console (F12) and check for any errors
-- [ ] Verify no warnings about missing files or resources
+This is a procedure, not proof of completed validation. Begin with unchecked
+items and record **Pass**, **Fail**, or **Not run** for each section, noting
+individual exceptions. Repeat for each browser/OS/device combination evaluated;
+unavailable or unchecked tests are not passes.
 
-## 1. Practice Stopwatch Tests
+Serve the app using [Run locally](README.md#run-locally), and run the separate
+[automated checks](CONTRIBUTING.md#automated-checks). Synthetic events and audio
+doubles cannot certify native key defaults, screen readers, audible quality,
+touch hardware, or browser/OS suspension.
 
-### Basic Functionality
-- [ ] Click **Start** → stopwatch begins counting
-- [ ] Verify **Start** button is disabled when running
-- [ ] Click **Pause** → stopwatch pauses at current time
-- [ ] Verify **Pause** button is disabled when paused
-- [ ] Click **Start** again → stopwatch resumes from paused time
-- [ ] Click **Reset** → stopwatch returns to 00:00:00
-- [ ] Verify **Reset** is disabled when stopwatch is at 00:00:00
+## Results record
 
-### Persistence
-- [ ] Start the stopwatch and let it run for ~10 seconds
-- [ ] Refresh the page (F5) → stopwatch should resume automatically
-- [ ] Click **Reset** → verify completed time is added to practice history
-- [ ] Start stopwatch, close tab, reopen `index.html` → session should be restored
+Copy for each environment; attach observations or issue links.
 
-### Display Format
-- [ ] Verify time displays as HH:MM:SS (e.g., 00:15:30)
-- [ ] Let run for over 1 minute → verify minutes increment
-- [ ] Let run for over 1 hour → verify hours increment
+| Field                                               | Result |
+| --------------------------------------------------- | ------ |
+| Revision, including uncommitted changes             |        |
+| Date, time, and timezone                            |        |
+| Browser and version / OS and version                |        |
+| Device, input devices, audio output                 |        |
+| Assistive technology and version / enabled settings |        |
+| Section or check / Pass, Fail, or Not run           |        |
+| Notes, reproduction steps, evidence or issue links  |        |
 
-## 2. Practice History Tests
+## 1. Safe setup
 
-### Daily Totals
-- [ ] After resetting stopwatch, verify "Today" total updates
-- [ ] Verify "7-Day Total" includes today's practice
-- [ ] Check "Last 7 Days" list shows today with correct duration
+- [ ] Use a disposable browser profile and isolated local origin for storage
+      failure, conflict, or destructive experiments. Never clear or edit real
+      practice history. Keep the same origin for persistence checks: a different
+      host or port has separate storage.
+- [ ] Load the app. All five feature sections and their assets load, with no
+      audio on load or unexpected runtime errors. Set a comfortable audio level.
 
-### Data Persistence
-- [ ] Reset stopwatch after 30 seconds of practice
-- [ ] Refresh page → verify today's total persists
-- [ ] Close and reopen browser → verify data still exists
+## 2. Practice and persistence
 
-### Daily Breakdown
-- [ ] Verify "Last 7 Days" shows all 7 days (even if 0 minutes)
-- [ ] Verify "Today" appears at the top of the list
-- [ ] Verify each day shows date label (Today, Yesterday, or weekday/date)
+- [ ] Start, Pause, wait, and Start again. Only running time accrues. Start is
+      disabled while running, Pause while paused, and Done until positive elapsed
+      time exists.
+- [ ] Accumulate at least 60 seconds of running time. Today and the seven-day
+      total include the active session, even while paused. History displays whole
+      minutes, so shorter practice need not visibly add a minute.
+- [ ] Choose Done: history retains the saved total, the timer returns to
+      `00:00:00`, and Done disables. This is **Done**, not discard/reset.
+- [ ] Reload a running session after a short wait: it resumes and includes time
+      since its checkpoint, including time away. Finish it, then separately reload
+      a paused session: its time stays unchanged until Start. Finish that session.
+- [ ] Hide/restore a running page and navigate away/back. The clock catches up
+      without appearing to accelerate. Completed totals survive reload on the
+      same origin when storage is available.
 
-### Edge Cases
-- [ ] Practice across midnight (if testing spans two days) → verify new day starts fresh
-- [ ] Check that days older than 7 days would be expired (can simulate by manually editing localStorage)
+## 3. History and rings
 
-## 3. Metronome Tests
+- [ ] Seven local calendar dates appear, newest first, including zero totals;
+      Today and Yesterday labels match the local date.
+- [ ] Check the seconds ring and minute rollover during a short run. The legend
+      describes seconds/minutes/hours from inside out: 60 seconds, 60 minutes,
+      and 8 hours. There is no days ring. Hours stay full at 8 while smaller units
+      repeat; elapsed text never caps.
+- [ ] Today's history has minutes (60) and hours (8); the seven-day total has
+      minutes (60), hours (24), and completed 24-hour days (7), from inside out.
+      Minutes and weekly hours repeat; Today hours and weekly days stay full at
+      their limits. Text totals remain uncapped. These are display scales, not
+      practice goals or counts of dates practiced.
+- [ ] If a real local-midnight run is available, check idle/paused date rollover
+      and running allocation to both days. Otherwise record Not run. Use
+      [calendar](tests/calendar.test.mjs), [rendering](tests/rendering.test.mjs),
+      and [control](tests/controls.test.mjs) test fixtures for midnight, DST,
+      multi-day, and ring boundaries; do not wait 24 hours or alter real history.
 
-### Basic Functionality
-- [ ] Click **Start Metronome** → hear audible clicks
-- [ ] Verify button changes to **Stop Metronome** (red)
-- [ ] Verify beat indicators appear and pulse with each beat
-- [ ] Verify first beat (beat 1) has a higher pitch accent
-- [ ] Click **Stop Metronome** → clicks stop, indicators clear
+## 4. Numeric controls and tuning
 
-### BPM Control
-- [ ] Drag BPM slider → verify display updates in real-time
-- [ ] Type a value in BPM input → verify slider and display update
-- [ ] Try BPM = 40 (slowest) → verify tempo is slow
-- [ ] Try BPM = 240 (fastest) → verify tempo is fast
-- [ ] Try entering 300 in input → verify it clamps to 240
-- [ ] Try entering 20 in input → verify it clamps to 40
+- [ ] Move the tempo slider and enter whole BPM values from 40–240. Slider,
+      number field, displayed BPM, and audible tempo agree.
+- [ ] While playing, leave blank, fractional, or out-of-range BPM/meter drafts
+      uncommitted: the prior valid setting stays active. Enter, blur, or change
+      commits by rounding/clamping finite numbers; blank/invalid text restores the
+      last valid value. Try BPM `123.6` → `124`, `999` → `240`, `1` → `40`;
+      meter `2.6` → `3`, `0` → `1`, `99` → `16`.
+- [ ] Enter in either tempo/meter field commits both drafts and toggles the
+      metronome once without reloading. Holding Enter does not toggle repeatedly.
+      Stop still works with an invalid draft. Activate both audio forms' Start/Stop
+      buttons with Enter/Space and confirm they toggle only their own sound.
+- [ ] Try meters 1, 3, and 16. Dots match and beat one is accented. A changed
+      meter restarts on a downbeat; committing the same value again does not.
+- [ ] Start/stop the tuning tone and change notes/octaves. Labels and frequency
+      agree (A4 is 440 Hz). Adjust all three volumes: whole-percentage labels
+      agree, and 0% is silent. Try each chord waveform on sustained and new notes.
 
-### Beats Per Measure
-- [ ] Change "Beats per measure" to 3 → verify 3 beat indicators appear
-- [ ] Start metronome → verify accent on beat 1 every 3 beats
-- [ ] Change to 6 → verify 6 indicators and pattern updates
-- [ ] Try 1 → single beat with accent every time
-- [ ] Try 16 → verify 16 beats display
+## 5. Piano input and cancellation
 
-### Timing Accuracy
-- [ ] Set BPM to 60 (1 beat per second)
-- [ ] Start metronome and count along for 10 seconds
-- [ ] Verify timing is consistent and doesn't drift
+Use a physical keyboard and real pointer/touch devices for native behavior.
 
-## 4. Tuning Tone Generator Tests
+- [ ] Tab/Shift+Tab pass through one note per keyboard, not all 24. Left/Right
+      move chromatically; Home/End reach C3/B4 without sound. Focused keys scroll
+      into view on narrow keyboards.
+- [ ] Hold: click/tap or Enter/Space toggles once; key repeat does not repeatedly
+      toggle. Multiple notes can stay on, and toggling one off leaves others on.
+- [ ] Momentary: Enter/Space or primary pointer press plays until release. Repeat
+      and the pointer's following click do not restart it. Releasing outside the
+      key ends its captured press.
+- [ ] Use pointer plus keyboard or two touches on one Momentary note: it plays
+      until the last owner releases. Try separate notes with multiple touches.
+      Secondary mouse buttons do not start notes; primary release while another
+      mouse button stays down still stops its note.
+- [ ] Move keyboard focus, switch windows, and hide the page during Momentary
+      playback. Key-focus loss releases that key's keyboard press but preserves
+      a separate pointer owner; window blur/hiding clears all Momentary notes.
+      Intentional Hold notes remain unless audio is interrupted.
+- [ ] Pan a narrow keyboard horizontally and pinch to zoom on touch hardware.
+      Gesture cancellation must not leave a stuck note or accidentally latch Hold.
+- [ ] Click-only assistive activation of Momentary plays a brief audition (about
+      300 ms). A normal press replacing it is not cut off by the old audition.
+- [ ] Escape from either piano group, waveform selector, chord volume, or Stop
+      button clears both keyboards without stopping timer, tuner, or metronome.
+      Waveform/volume and focus stay unchanged. Escape in other cards leaves chord
+      notes playing. Stop chord notes remains usable when silent.
 
-### Basic Functionality
-- [ ] Click **Start Tone** → hear a steady tone
-- [ ] Verify button changes to **Stop Tone** (red)
-- [ ] Click **Stop Tone** → tone stops smoothly (no click/pop)
+## 6. Real-device audio and lifecycle
 
-### Note Selection
-- [ ] Default should be **F3** at **174.61 Hz**
-- [ ] Change note to **A** → verify display updates to A3 and ~220.00 Hz
-- [ ] Change octave to **4** → verify display updates to A4 and 440.00 Hz
-- [ ] Try different note/octave combinations → verify frequency updates
-- [ ] While tone is playing, change note → verify frequency changes smoothly
+- [ ] Start each audio feature by user action and play them together. Stopping
+      one leaves the others playing. Listen for metronome accents, a steady tone,
+      and clean attacks/releases; record audible defects rather than inferring
+      quality or timing accuracy from automated tests.
+- [ ] Rapidly start/stop/restart tones and notes, including an immediate release
+      on first activation. Cancelled starts must not play later; old releases must
+      not cut off new presses. Metronome Stop clears queued beats/indicators.
+      Returning from delayed/background activity must not burst overdue clicks.
+- [ ] Try available device interruptions, such as lock/unlock or an audio-route
+      change, and record actual behavior. If the context is interrupted, sound
+      stops, controls reset, and a notice requests explicit restart. The timer
+      remains independent; background audio is browser-dependent, not guaranteed.
+- [ ] Navigate away/back with audio playing: it stops and does not restart until
+      another user action. If startup is blocked/unavailable, a notice explains
+      the failure and the timer stays usable. Record unreproducible failure paths
+      as Not run; [audio tests](tests/audio.test.mjs) cover deterministic failures.
 
-### Volume Control
-- [ ] Start tone at default volume (50%)
-- [ ] Drag volume slider to 100% → tone gets louder
-- [ ] Drag to 0% → tone becomes silent
-- [ ] Verify volume display shows correct percentage
+## 7. Layout and accessibility
 
-### Audio Quality
-- [ ] Listen for smooth start (no click or pop)
-- [ ] Listen for smooth stop (no click or pop)
-- [ ] Verify tone is a clean sine wave (smooth, not buzzy)
+- [ ] Check light/dark appearance at 320px, tablet, and desktop widths. The page
+      has no horizontal overflow; narrow piano containers scroll. Labels, hints,
+      notices, controls, and 16 beat dots remain readable.
+- [ ] Check reflow and control access at 200% zoom; check reduced motion and
+      forced colors using browser/OS settings. Focus and active states remain
+      usable. Record unavailable modes as Not run.
+- [ ] Tab through every control. Focus is visible on sliders, fields, buttons,
+      and white/black piano keys, active or inactive. Native button/slider
+      keyboard actions work without trapping focus.
+- [ ] With a screen reader, check named sections, distinct field/volume labels,
+      input hints/invalid drafts, the seven-item history list, and both piano
+      groups. Hold names stay stable while pressed state changes.
+- [ ] Confirm timer start, pause, successful Done, and error notices are announced
+      appropriately; seconds, rings, and beats do not chatter. Failed Done never
+      announces success. Record assistive technology and interaction mode;
+      DOM inspection alone does not complete this check.
 
-## 5. User Interface & Experience Tests
+## 8. Storage safety and offline boundaries
 
-### Responsive Design
-- [ ] Resize browser window to mobile width (~375px) → verify layout adapts
-- [ ] Verify all controls are still accessible and readable
-- [ ] Check that cards stack vertically on narrow screens
-- [ ] Resize to tablet width (~768px) → verify grid layout
-- [ ] Resize to desktop width (>1200px) → verify cards spread across screen
+Use disposable data only. Prefer deterministic storage tests when failures cannot
+be reproduced safely; do not inject arbitrary storage values or fill a real
+profile's quota.
 
-### Touch & Keyboard Accessibility
-- [ ] Tab through all controls → verify logical tab order
-- [ ] Verify visible focus indicators on all interactive elements
-- [ ] Press Enter/Space on focused buttons → verify they activate
-- [ ] Use arrow keys on sliders → verify they adjust values
-- [ ] Test on touch device (if available) → verify all controls are touch-friendly
+- [ ] Where settings allow temporary storage blocking, attempt Done: a visible
+      notice preserves the paused, unsaved session. Restore access and retry:
+      it saves once, without double-counting. Keep the page open while unsaved;
+      browser unload warnings are not guaranteed.
+- [ ] On an isolated origin, start a session in one tab, open another, and pause
+      it there. The stale tab pauses, reports a conflict, and blocks Start/Done
+      instead of overwriting the other tab. Record unsaved local time before
+      reloading: reload replaces this tab's state with the saved record and can
+      discard that unsaved time. Competing sessions are not merged. This is
+      defensive detection, not concurrent-writer support; normal use is one timer
+      tab.
+- [ ] Consult [practice tests](tests/practice.test.mjs) for malformed records,
+      migrations/backups, unsupported versions, read/write failures, and missed
+      conflicts. Do not claim these were manually verified without a separate
+      disposable-data run and recorded evidence.
+- [ ] After loading completes, disconnect the network or stop the local server.
+      Timer, local history, and audio controls remain usable subject to browser
+      storage/audio policies. There is no service worker or offline reload
+      guarantee; cached reopening is not a required pass condition.
 
-### Visual Design
-- [ ] Verify color scheme is aesthetically pleasing
-- [ ] Check that text is readable against backgrounds (sufficient contrast)
-- [ ] Verify focus states are clearly visible
-- [ ] Check that disabled buttons appear visually distinct
-
-### Reduced Motion
-- [ ] Enable "Reduce motion" in OS settings
-- [ ] Reload page → verify animations are minimal/disabled
-- [ ] Verify functionality still works without animations
-
-## 6. Performance & Offline Tests
-
-### Performance
-- [ ] Monitor CPU usage (Task Manager / Activity Monitor) while metronome runs
-- [ ] Verify no significant performance degradation over 5+ minutes
-- [ ] Check browser console for memory leaks or warnings
-
-### Offline Functionality
-- [ ] With page loaded, disconnect from internet (or stop local server)
-- [ ] Verify all features still work (stopwatch, metronome, tone, history)
-- [ ] Close and reopen browser (cache should serve files)
-
-## 7. Browser Compatibility
-
-Test in multiple browsers:
-- [ ] Chrome/Chromium
-- [ ] Firefox
-- [ ] Safari (macOS/iOS)
-- [ ] Edge
-
-Verify in each:
-- Web Audio works (metronome and tone)
-- LocalStorage works (practice history persists)
-- UI renders correctly
-
-## 8. Error Handling & Edge Cases
-
-### Browser Feature Detection
-- [ ] Open browser console
-- [ ] Check for appropriate warnings if features are unavailable
-- [ ] Verify app doesn't crash if localStorage is blocked
-
-### Invalid Input
-- [ ] Try entering non-numeric values in BPM input → verify graceful handling
-- [ ] Try negative numbers in beats per measure → verify clamping
-- [ ] Try very large numbers → verify limits are enforced
-
-### Concurrent Audio
-- [ ] Start metronome, then start tone → both should play simultaneously
-- [ ] Stop metronome while tone is playing → tone continues
-- [ ] Start multiple instances in different tabs → verify independent operation
-
-## Success Criteria
-
-All checkboxes should be ticked (✓) for a successful validation.
-
-If any feature fails, note the issue and browser/OS details for debugging.
-
+After testing, stop audio, finish disposable sessions, close extra test tabs, and
+restore changed settings. Attach results and explicitly report remaining Not run
+items instead of claiming blanket browser or accessibility coverage.

@@ -1,0 +1,25 @@
+{
+    "name": "trombone-practice-timer",
+    "private": true,
+    "description": "Development checks for the dependency-free practice timer",
+    "engines": {
+        "node": ">=24.16.0 <25"
+    },
+    "scripts": {
+        "check": "npm run lint && npm run typecheck && npm run format:check && npm test",
+        "lint": "eslint . --max-warnings=0",
+        "typecheck": "tsc --project tsconfig.json",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "test": "node --test tests/*.test.mjs"
+    },
+    "devDependencies": {
+        "@eslint/js": "10.0.1",
+        "@sinonjs/fake-timers": "15.4.0",
+        "eslint": "10.9.1",
+        "globals": "17.11.0",
+        "jsdom": "30.0.1",
+        "prettier": "3.9.6",
+        "typescript": "7.0.2"
+    }
+}
