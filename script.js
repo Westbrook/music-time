@@ -12,6 +12,10 @@
      * @typedef {{context: AudioContext, oscillator: OscillatorNode, gainNode: GainNode}} AudioVoice
      * @typedef {{voice: AudioVoice | null, keyEl: HTMLButtonElement, audition: boolean}} ActiveNote
      * @typedef {{el: HTMLElement, mode: 'hold' | 'momentary', activeNotes: Map<string, ActiveNote>}} PracticeKeyboard
+     * @typedef {{running: boolean, bpm: number, beatsPerMeasure: number, volume: number}} MetronomeState
+     * @typedef {{running: boolean, note: NoteName, octave: number, volume: number}} TuningToneState
+     * @typedef {{waveform: OscillatorType, volume: number, heldNotes: string[]}} ChordState
+     * @typedef {{metronome: MetronomeState, tone: TuningToneState, chords: ChordState}} PracticeAudioState
      */
 
     // ============================================================================
@@ -247,6 +251,68 @@
         slider.addEventListener('input', update);
         slider.addEventListener('change', update);
         update();
+        return (/** @type {number} */ volume) => {
+            slider.value = String(Math.round(volume * 100));
+            update();
+        };
+    }
+
+    // ============================================================================
+    // Card Focus (presentation only; keep every card and its controls in place)
+    // ============================================================================
+
+    function initCardFocus() {
+        const cards = [...document.querySelectorAll('.card')];
+        const page = document.scrollingElement || document.documentElement;
+        let focusedCard = null;
+        let scrollLeft = 0;
+        let scrollTop = 0;
+        const focusIcon = 'M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5';
+        const removeFocusIcon = 'M3 8h5V3m8 0v5h5M8 21v-5H3m18 0h-5v5';
+        const controls = cards.map((card) => {
+            const name = card.querySelector('h2')?.textContent.trim() || 'card';
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'card-focus-button';
+            button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" />
+            </svg>`;
+            card.prepend(button);
+            button.addEventListener('click', () => {
+                const nextCard = focusedCard === card ? null : card;
+                if (nextCard && !focusedCard) {
+                    scrollLeft = page.scrollLeft;
+                    scrollTop = page.scrollTop;
+                    document.body.style.setProperty(
+                        '--focused-card-width',
+                        `${card.getBoundingClientRect().width}px`
+                    );
+                }
+                focusedCard = nextCard;
+                document.body.classList.toggle('card-focus-mode', focusedCard !== null);
+                if (!focusedCard) document.body.style.removeProperty('--focused-card-width');
+                updateControls();
+                button.focus({ preventScroll: true });
+                page.scrollLeft = focusedCard ? 0 : scrollLeft;
+                page.scrollTop = focusedCard ? 0 : scrollTop;
+            });
+            return { card, button, name, icon: button.querySelector('path') };
+        });
+
+        function updateControls() {
+            for (const { card, button, name, icon } of controls) {
+                const focused = card === focusedCard;
+                card.classList.toggle('is-focused', focused);
+                button.setAttribute('aria-pressed', String(focused));
+                const label = focused ? `Remove focus from ${name}` : `Focus ${name}`;
+                button.setAttribute('aria-label', label);
+                button.title = label;
+                icon.setAttribute('d', focused ? removeFocusIcon : focusIcon);
+            }
+        }
+
+        updateControls();
     }
 
     // ============================================================================
@@ -778,6 +844,7 @@
             this.dirty = true;
             this.persistCheckpoint(now);
             // Saving can synchronously report a conflict and pause this session.
+            if (this.running) PracticeAudio.resume();
             this.syncTimers();
             this.render(now);
         },
@@ -785,6 +852,7 @@
         pause() {
             if (!this.running) return;
             const now = Date.now();
+            PracticeAudio.pause();
             this.session = { ...this.capture(now), status: 'paused' };
             this.dirty = true;
             this.persistCheckpoint(now);
@@ -796,6 +864,8 @@
             const now = Date.now();
             const session = this.capture(now);
             if (!session || session.elapsedMs === 0) return;
+            // Sound stops even if saving fails and the session remains available to retry.
+            PracticeAudio.clear();
             // Finalization remains one write; the views never predict a successful save.
             this.session = { ...session, status: 'paused' };
             this.dirty = true;
@@ -1117,11 +1187,13 @@
             voice.gainNode.disconnect();
         },
 
-        stopAll() {
+        stopAll(immediate = true) {
             Metronome.stop();
             TuningTone.stop();
             ChordalStudies.stopAll();
-            for (const voice of this.voices) this.releaseVoice(voice);
+            if (immediate) {
+                for (const voice of this.voices) this.releaseVoice(voice);
+            }
         },
 
         teardown() {
@@ -1139,6 +1211,39 @@
                     }
                 });
             }
+        }
+    };
+
+    // A pause remembers playback intent and settings, never live audio nodes or
+    // transient pointer/keyboard presses. This snapshot belongs only to this page.
+    const PracticeAudio = {
+        /** @type {PracticeAudioState | null} */
+        pausedState: null,
+
+        pause() {
+            this.pausedState = {
+                metronome: Metronome.captureState(),
+                tone: TuningTone.captureState(),
+                chords: ChordalStudies.captureState()
+            };
+            AudioEngine.stopAll(false);
+        },
+
+        resume() {
+            const state = this.pausedState;
+            if (!state) return;
+            this.pausedState = null;
+            // Replace any independent playback started during the break.
+            AudioEngine.stopAll(false);
+            Metronome.restoreState(state.metronome);
+            TuningTone.restoreState(state.tone);
+            ChordalStudies.restoreState(state.chords);
+        },
+
+        clear() {
+            this.pausedState = null;
+            // Preserve the Stop controls' short releases to avoid audible clicks.
+            AudioEngine.stopAll(false);
         }
     };
 
@@ -1201,7 +1306,7 @@
             );
             this.volumeDisplay = document.getElementById('metronomeVolumeDisplay');
 
-            const setBpm = bindIntegerControl(
+            this.setBpm = bindIntegerControl(
                 this.bpmInput,
                 MIN_BPM,
                 MAX_BPM,
@@ -1212,11 +1317,11 @@
                     setText(this.bpmDisplay, String(value));
                 }
             );
-            const updateTempo = () => setBpm(this.bpmSlider.valueAsNumber);
+            const updateTempo = () => this.setBpm(this.bpmSlider.valueAsNumber);
             this.bpmSlider.addEventListener('input', updateTempo);
             this.bpmSlider.addEventListener('change', updateTempo);
 
-            const setBeats = bindIntegerControl(
+            this.setBeats = bindIntegerControl(
                 this.beatsInput,
                 1,
                 16,
@@ -1238,16 +1343,39 @@
                 const wasRunning = this.running;
                 // Stop first so committing a changed meter cannot restart a stopped run.
                 if (wasRunning) this.stop();
-                setBpm(this.bpmInput.valueAsNumber);
-                setBeats(this.beatsInput.valueAsNumber);
+                this.setBpm(this.bpmInput.valueAsNumber);
+                this.setBeats(this.beatsInput.valueAsNumber);
                 if (!wasRunning) this.start();
             });
 
-            bindVolumeControl(this.volumeSlider, this.volumeDisplay, this.volume, (volume) => {
-                this.volume = volume;
-            });
+            this.setVolume = bindVolumeControl(
+                this.volumeSlider,
+                this.volumeDisplay,
+                this.volume,
+                (volume) => {
+                    this.volume = volume;
+                }
+            );
 
             this.createBeatIndicators();
+        },
+
+        /** @returns {MetronomeState} */
+        captureState() {
+            return {
+                running: this.running,
+                bpm: this.bpm,
+                beatsPerMeasure: this.beatsPerMeasure,
+                volume: this.volume
+            };
+        },
+
+        /** @param {MetronomeState} state */
+        restoreState(state) {
+            this.setBpm(state.bpm);
+            this.setBeats(state.beatsPerMeasure);
+            this.setVolume(state.volume);
+            if (state.running) this.start();
         },
 
         createBeatIndicators() {
@@ -1435,12 +1563,17 @@
             this.noteSelect.addEventListener('change', () => this.updateFrequency());
             this.octaveSelect.addEventListener('change', () => this.updateFrequency());
 
-            bindVolumeControl(this.volumeSlider, this.volumeDisplay, this.volume, (volume) => {
-                this.volume = volume;
-                if (this.voice) {
-                    AudioEngine.setVolume(this.voice, this.volume * 0.3);
+            this.setVolume = bindVolumeControl(
+                this.volumeSlider,
+                this.volumeDisplay,
+                this.volume,
+                (volume) => {
+                    this.volume = volume;
+                    if (this.voice) {
+                        AudioEngine.setVolume(this.voice, this.volume * 0.3);
+                    }
                 }
-            });
+            );
 
             this.toneBtn.form.addEventListener('submit', (event) => {
                 event.preventDefault();
@@ -1448,6 +1581,25 @@
             });
 
             this.updateFrequency();
+        },
+
+        /** @returns {TuningToneState} */
+        captureState() {
+            return {
+                running: this.running,
+                note: this.currentNote,
+                octave: this.currentOctave,
+                volume: this.volume
+            };
+        },
+
+        /** @param {TuningToneState} state */
+        restoreState(state) {
+            this.noteSelect.value = state.note;
+            this.octaveSelect.value = String(state.octave);
+            this.updateFrequency();
+            this.setVolume(state.volume);
+            if (state.running) this.start();
         },
 
         updateFrequency() {
@@ -1654,34 +1806,25 @@
         },
 
         attachEventListeners() {
-            const updateWaveform = () => {
-                const value = this.instrumentSelect.value;
-                if (value === 'sine' || value === 'triangle' || value === 'square') {
-                    this.waveform = value;
-                }
-                this.instrumentSelect.value = this.waveform;
-                this.keyboards.forEach((kb) => {
-                    kb.activeNotes.forEach((noteData) => {
-                        if (noteData.voice && !noteData.audition) {
-                            noteData.voice.oscillator.type = this.waveform;
-                        }
-                    });
-                });
-            };
-            this.instrumentSelect.addEventListener('change', updateWaveform);
-            updateWaveform();
+            this.instrumentSelect.addEventListener('change', () => this.updateWaveform());
+            this.updateWaveform();
 
-            bindVolumeControl(this.volumeSlider, this.volumeDisplay, this.volume, (volume) => {
-                this.volume = volume;
-                this.keyboards.forEach((kb) => {
-                    kb.activeNotes.forEach((noteData) => {
-                        // Brief auditions keep their scheduled envelope; changes apply next time.
-                        if (noteData.voice && !noteData.audition) {
-                            AudioEngine.setVolume(noteData.voice, this.volume * 0.3, 0.01);
-                        }
+            this.setVolume = bindVolumeControl(
+                this.volumeSlider,
+                this.volumeDisplay,
+                this.volume,
+                (volume) => {
+                    this.volume = volume;
+                    this.keyboards.forEach((kb) => {
+                        kb.activeNotes.forEach((noteData) => {
+                            // Brief auditions keep their envelope; changes apply next time.
+                            if (noteData.voice && !noteData.audition) {
+                                AudioEngine.setVolume(noteData.voice, this.volume * 0.3, 0.01);
+                            }
+                        });
                     });
-                });
-            });
+                }
+            );
 
             this.keyboards.forEach((kb) => this.attachKeyboardEvents(kb));
             const stopNotesBtn = /** @type {HTMLButtonElement} */ (
@@ -1705,6 +1848,47 @@
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden) this.releaseMomentaryNotes();
             });
+        },
+
+        updateWaveform() {
+            const value = this.instrumentSelect.value;
+            if (value === 'sine' || value === 'triangle' || value === 'square') {
+                this.waveform = value;
+            }
+            this.instrumentSelect.value = this.waveform;
+            this.keyboards.forEach((kb) => {
+                kb.activeNotes.forEach((noteData) => {
+                    if (noteData.voice && !noteData.audition) {
+                        noteData.voice.oscillator.type = this.waveform;
+                    }
+                });
+            });
+        },
+
+        /** @returns {ChordState} */
+        captureState() {
+            return {
+                waveform: this.waveform,
+                volume: this.volume,
+                heldNotes: [...this.activeNotesHold.keys()]
+            };
+        },
+
+        /** @param {ChordState} state */
+        restoreState(state) {
+            this.instrumentSelect.value = state.waveform;
+            this.updateWaveform();
+            this.setVolume(state.volume);
+            const keyboard = this.keyboards.find((kb) => kb.mode === 'hold');
+            if (!keyboard) return;
+            for (const key of keyboard.el.querySelectorAll('button')) {
+                const note = /** @type {NoteName} */ (key.dataset.note);
+                const octave = Number(key.dataset.octave);
+                const noteKey = `${note}${octave}`;
+                if (state.heldNotes.includes(noteKey)) {
+                    this.playNote(noteKey, note, octave, key, keyboard);
+                }
+            }
         },
 
         /** @param {PracticeKeyboard} kb */
@@ -1935,5 +2119,6 @@
         Metronome.init();
         TuningTone.init();
         ChordalStudies.init();
+        initCardFocus();
     });
 })();

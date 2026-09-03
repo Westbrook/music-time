@@ -28,8 +28,10 @@ older-version compatibility has not been verified.
 ## Practice workflow
 
 1. Choose **Start** to begin.
-2. Choose **Pause** for a break; **Start** resumes the same session.
-3. Choose **Done** to save the session and return the display to `00:00:00`.
+2. Choose **Pause** for a break; it stops the timer and all audio. **Start** resumes
+   the same session and restores the remembered sounds.
+3. Choose **Done** to save the session, stop all audio, clear remembered playback,
+   and return the display to `00:00:00`.
 
 There is no separate Reset button. Done becomes available for any positive
 duration, including a session shorter than one displayed second.
@@ -54,8 +56,18 @@ down, so it can exceed the sum of the individually rounded daily labels.
 - **Chordal Studies:** two independent keyboards cover C3–B4, with sine, triangle,
   or square waveforms and a shared chord volume.
 
-Start at a comfortable, low volume. Each audio tool has its own controls;
-Start/Pause/Done on the practice timer do not start or stop sound.
+Start at a comfortable, low volume. Each audio tool has its own controls. The
+timer's initial **Start** leaves those tools as they are. **Pause** remembers
+which tools are playing, their tempo, meter, note, octave, waveform, volumes, and
+the selected Hold chord notes, then stops all sound. **Start** restores that
+snapshot, replacing any audio changes made during the break; the metronome
+restarts on a downbeat. Momentary keys and brief auditions stay released.
+
+**Done** stops all sound, clears selected chord notes, and discards the pause
+snapshot, even if saving practice time fails. Chosen tempo, tuning, waveform, and
+volume settings stay in place, but starting another session does not restart
+audio. Audio snapshots are kept only in memory on this page; reloading does not
+restore audio settings or playback.
 
 ### Chord keyboards
 

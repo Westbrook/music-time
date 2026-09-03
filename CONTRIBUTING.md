@@ -51,6 +51,7 @@ initialized on `DOMContentLoaded`; it does not expose its modules as public APIs
 | `Stopwatch`                                   | Own session transitions, capture time, checkpoint data, and schedule lifecycle work |
 | `StopwatchView` / `PracticeHistory`           | Render a shared snapshot through cached elements and date-keyed rows                |
 | `AudioEngine`                                 | Own shared audio readiness, voice cleanup, interruptions, and teardown              |
+| `PracticeAudio`                               | Capture and restore paused audio settings and playback; clear playback on Done      |
 | `Metronome` / `TuningTone` / `ChordalStudies` | Own feature controls, playback intent, and scheduling/input state                   |
 | `bindIntegerControl` / `bindVolumeControl`    | Apply one numeric-input policy across features                                      |
 
@@ -86,14 +87,15 @@ the default click only when key events are not prevented. Automation that sends
 untrusted key events likewise cannot establish native Enter/Space behavior.
 Keep that distinction when reporting verification results.
 
-| Test file                                      | Coverage                                                             |
-| ---------------------------------------------- | -------------------------------------------------------------------- |
-| [practice.test.mjs](tests/practice.test.mjs)   | Sessions, validated storage, migration, failures, and conflicts      |
-| [calendar.test.mjs](tests/calendar.test.mjs)   | Local dates, midnight allocation, DST, and retained windows          |
-| [audio.test.mjs](tests/audio.test.mjs)         | Shared readiness, timing, cancellation, and voice cleanup            |
-| [rendering.test.mjs](tests/rendering.test.mjs) | DOM reuse, exact minute totals, and page lifecycle scheduling        |
-| [controls.test.mjs](tests/controls.test.mjs)   | Numeric input, semantic controls, piano ownership, status, and rings |
-| [docs.test.mjs](tests/docs.test.mjs)           | Relative documentation links and Markdown heading anchors            |
+| Test file                                                | Coverage                                                             |
+| -------------------------------------------------------- | -------------------------------------------------------------------- |
+| [practice.test.mjs](tests/practice.test.mjs)             | Sessions, validated storage, migration, failures, and conflicts      |
+| [calendar.test.mjs](tests/calendar.test.mjs)             | Local dates, midnight allocation, DST, and retained windows          |
+| [audio.test.mjs](tests/audio.test.mjs)                   | Shared readiness, timing, cancellation, and voice cleanup            |
+| [practice-audio.test.mjs](tests/practice-audio.test.mjs) | Timer/audio coordination, pause restoration, and completion cleanup  |
+| [rendering.test.mjs](tests/rendering.test.mjs)           | DOM reuse, exact minute totals, and page lifecycle scheduling        |
+| [controls.test.mjs](tests/controls.test.mjs)             | Numeric input, semantic controls, piano ownership, status, and rings |
+| [docs.test.mjs](tests/docs.test.mjs)                     | Relative documentation links and Markdown heading anchors            |
 
 ## Regression expectations
 
@@ -202,6 +204,17 @@ policy, so change its expectations only with an explicit policy decision.
 
 ## Audio lifecycle and timing rules
 
+- Timer Pause captures feature settings, playback intent, and Hold pitches before
+  stopping all tools with their normal short releases. Start consumes that
+  in-memory snapshot only if the timer remains running after its storage check;
+  a synchronous conflict must not restart sound. A fresh Start leaves independent
+  audio untouched. Done stops all tools and discards the snapshot before saving,
+  including on save failure; it preserves selected settings. No audio state is
+  persisted with practice history.
+- Restoring a pause replaces changes made during the break and starts the
+  metronome on a downbeat. Hold notes restart through the normal voice lifecycle.
+  Momentary notes and auditions remain released; their pointer/keyboard ownership
+  must never be recreated from a saved snapshot.
 - All audio features share one lazily created context. A user action creates or
   resumes it; no voices are allocated until it is running. Concurrent starts
   share one resume request. Button generations and per-key request identities

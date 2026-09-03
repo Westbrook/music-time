@@ -22,6 +22,9 @@ release number; storage schema version 2 is a data format, not a release label.
 
 ### Audio and rendering
 
+- Linked timer Pause/Start to saved audio settings, active tools, and Hold chord
+  notes. Pause stops every tool; Start restores the snapshot. Done stops audio and
+  clears remembered playback even when saving fails. Momentary inputs stay released.
 - Shared one lazy audio context across features; canceled released or superseded
   requests during resume and disconnected ended voices by identity.
 - Prevented delayed metronome callbacks from replaying missed beats in a burst;

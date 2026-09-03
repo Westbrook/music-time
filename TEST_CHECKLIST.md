@@ -123,6 +123,14 @@ Use a physical keyboard and real pointer/touch devices for native behavior.
       one leaves the others playing. Listen for metronome accents, a steady tone,
       and clean attacks/releases; record audible defects rather than inferring
       quality or timing accuracy from automated tests.
+- [ ] With the timer running and audio active, Pause silences all tools and clears
+      active keys/beat indicators. Start restores only the previously active
+      tools and Hold notes, with their saved settings, replacing edits made during
+      the break. Momentary keys/auditions stay released; the metronome starts on a
+      downbeat. Repeat with only some tools active and with a quick Pause/Start.
+- [ ] Done from running or paused stops all sound and clears chord selection and
+      remembered playback. Start a new session: it stays silent and selected
+      settings remain unchanged. A failed Done save must also leave audio stopped.
 - [ ] Rapidly start/stop/restart tones and notes, including an immediate release
       on first activation. Cancelled starts must not play later; old releases must
       not cut off new presses. Metronome Stop clears queued beats/indicators.
