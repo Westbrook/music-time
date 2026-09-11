@@ -49,11 +49,30 @@ Copy for each environment; attach observations or issue links.
 - [ ] Hide/restore a running page and navigate away/back. The clock catches up
       without appearing to accelerate. Completed totals survive reload on the
       same origin when storage is available.
+- [ ] At a full active hour, Still working? appears with a 15:00 countdown. Confirm
+      before expiry: elapsed time stays intact and the next check is at the next
+      session hour. Pause acknowledges a check; Done/Done for now before expiry
+      saves actual elapsed time.
+- [ ] Leave a check unanswered: the timer and audio stop, and history keeps only
+      time through the triggering hour. Reload during grace and reopen after
+      expiry: the original deadline holds. A closed/suspended page catches expiry
+      when it runs again. Use [check-in fixtures](tests/check-in.test.mjs) for
+      accelerated deadline, midnight, and DST checks; record real suspension
+      behavior separately rather than treating fixtures as browser evidence.
 
 ## 3. History and rings
 
 - [ ] Seven local calendar dates appear, newest first, including zero totals;
       Today and Yesterday labels match the local date.
+- [ ] Hover or keyboard-focus a day's **…** control (always visible on touch).
+      Open it: the dialog identifies the date and recorded hours/minutes/seconds.
+      Save a correction including fractional seconds; only that day's total
+      changes and survives reload. Other days retain their recorded values.
+- [ ] Clear day sets the draft to zero without saving. Cancel or Escape preserves
+      recorded time; Clear then Save removes it. Empty fields count as zero on
+      Save; leaving all fields empty clears the selected day. Invalid or negative
+      drafts show an error without closing. While a session is running or paused,
+      the editor requests Done before enabling corrections.
 - [ ] Check the seconds ring and minute rollover during a short run. The legend
       describes seconds/minutes/hours from inside out: 60 seconds, 60 minutes,
       and 8 hours. There is no days ring. Hours stay full at 8 while smaller units
@@ -154,7 +173,8 @@ Use a physical keyboard and real pointer/touch devices for native behavior.
       usable. Record unavailable modes as Not run.
 - [ ] Tab through every control. Focus is visible on sliders, fields, buttons,
       and white/black piano keys, active or inactive. Native button/slider
-      keyboard actions work without trapping focus.
+      keyboard actions work. The day editor keeps modal focus within its controls;
+      Cancel/Escape and Save return focus to the opening day's button.
 - [ ] With a screen reader, check named sections, distinct field/volume labels,
       input hints/invalid drafts, the seven-item history list, and both piano
       groups. Hold names stay stable while pressed state changes.
@@ -162,6 +182,9 @@ Use a physical keyboard and real pointer/touch devices for native behavior.
       appropriately; seconds, rings, and beats do not chatter. Failed Done never
       announces success. Record assistive technology and interaction mode;
       DOM inspection alone does not complete this check.
+- [ ] The hourly banner and timeout result are announced without reading every
+      countdown tick. Its buttons and the day editor remain usable at narrow
+      widths, 200% zoom, and in light/dark and forced-color modes.
 
 ## 8. Storage safety and offline boundaries
 
@@ -173,6 +196,10 @@ profile's quota.
       notice preserves the paused, unsaved session. Restore access and retry:
       it saves once, without double-counting. Keep the page open while unsaved;
       browser unload warnings are not guaranteed.
+- [ ] Repeat a blocked save for check-in expiry and a day correction: the expired
+      hour stays paused for Done retry; the correction draft stays open for Save
+      retry. Restoring storage saves each once. Use [editor tests](tests/daily-editor.test.mjs)
+      for deterministic invalid drafts, failed writes, and missed cross-tab changes.
 - [ ] On an isolated origin, start a session in one tab, open another, and pause
       it there. The stale tab pauses, reports a conflict, and blocks Start/Done
       instead of overwriting the other tab. Record unsaved local time before
@@ -192,3 +219,16 @@ profile's quota.
 After testing, stop audio, finish disposable sessions, close extra test tabs, and
 restore changed settings. Attach results and explicitly report remaining Not run
 items instead of claiming blanket browser or accessibility coverage.
+
+## Focused verification — 2026-09-11
+
+Codex in-app browser on macOS, desktop dark appearance: the check-in banner and
+native editor rendered correctly. A disposable origin verified confirmation,
+countdown expiry (one hour saved, 15-minute grace excluded), daily correction,
+and persistence after navigation. Editor opening focused Hours; Escape and Save
+returned focus to the day's ellipsis. The Progress Report link appeared only on
+the flagged preview. Existing practice history was not edited during verification.
+
+`npm run check` passed, including all 311 automated tests. Mobile devices,
+screen-reader speech, forced colors, zoom, and real-device audio were not rerun
+for this change; the broader checklist above remains available for those checks.

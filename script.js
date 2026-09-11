@@ -5,7 +5,8 @@
     'use strict';
 
     /**
-     * @typedef {{status: 'running' | 'paused', elapsedMs: number, dailyMs: Record<string, number>, timestamp: number}} ActiveSession
+     * @typedef {{elapsedMs: number, dailyMs: Record<string, number>, timestamp: number}} PracticeCheckIn
+     * @typedef {{status: 'running' | 'paused', elapsedMs: number, dailyMs: Record<string, number>, timestamp: number, nextCheckInMs?: number, checkIn?: PracticeCheckIn}} ActiveSession
      * @typedef {{version: number, dailyData: Record<string, number>, activeSession: ActiveSession | null}} PracticeData
      * @typedef {{now: number, session: ActiveSession | null, dailyData: Record<string, number>, readOnly: boolean}} PracticeSnapshot
      * @typedef {{element: HTMLLIElement, date: HTMLSpanElement, duration: HTMLSpanElement, minutes: number | null}} HistoryRow
@@ -27,6 +28,8 @@
     const MIN_BPM = 40;
     const MAX_BPM = 240;
     const DAYS_TO_KEEP = 7;
+    const CHECK_IN_INTERVAL_MS = 60 * 60 * 1000;
+    const CHECK_IN_GRACE_MS = 15 * 60 * 1000;
     const AUDIO_RAMP_TIME = 0.015; // Prevent clicks on tone start/stop
 
     // Note frequencies (A4 = 440 Hz)
@@ -378,12 +381,12 @@
             const elapsedMs = secondsToMilliseconds(value.elapsed);
             if (elapsedMs === null || typeof value.running !== 'boolean') return null;
             // v1 contains no pause/day boundaries. Preserve its total without inventing intervals.
-            return {
+            return withCheckInSchedule({
                 status: value.running ? 'running' : 'paused',
                 elapsedMs,
                 dailyMs: elapsedMs > 0 ? { [getDayKey(new Date(value.timestamp))]: elapsedMs } : {},
                 timestamp: value.timestamp
-            };
+            });
         }
         if (
             !isMilliseconds(value.elapsedMs) ||
@@ -394,12 +397,61 @@
         const allocated = Object.values(dailyMs).reduce((sum, duration) => sum + duration, 0);
         if (repaired || !Number.isSafeInteger(allocated) || allocated > value.elapsedMs)
             return null;
-        return {
+        const session = withCheckInSchedule({
             status: value.status,
             elapsedMs: value.elapsedMs,
             dailyMs,
             timestamp: value.timestamp
-        };
+        });
+        if (value.nextCheckInMs !== undefined) {
+            if (
+                !isMilliseconds(value.nextCheckInMs) ||
+                value.nextCheckInMs === 0 ||
+                value.nextCheckInMs % CHECK_IN_INTERVAL_MS !== 0 ||
+                (value.checkIn === undefined && value.nextCheckInMs <= session.elapsedMs)
+            )
+                return null;
+            session.nextCheckInMs = value.nextCheckInMs;
+        }
+        if (value.checkIn !== undefined) {
+            const pending = value.checkIn;
+            if (
+                !isRecord(pending) ||
+                !isTimestamp(pending.timestamp) ||
+                !isMilliseconds(pending.elapsedMs) ||
+                pending.elapsedMs === 0 ||
+                pending.elapsedMs % CHECK_IN_INTERVAL_MS !== 0 ||
+                pending.elapsedMs > session.elapsedMs ||
+                session.status !== 'running'
+            )
+                return null;
+            const normalized = normalizeDailyData(pending.dailyMs, true);
+            const allocated = Object.values(normalized.dailyData).reduce((sum, ms) => sum + ms, 0);
+            if (
+                normalized.repaired ||
+                !Number.isSafeInteger(allocated) ||
+                allocated > pending.elapsedMs
+            )
+                return null;
+            session.checkIn = {
+                elapsedMs: pending.elapsedMs,
+                dailyMs: normalized.dailyData,
+                timestamp: pending.timestamp
+            };
+            session.nextCheckInMs = pending.elapsedMs;
+        }
+        return session;
+    }
+
+    /** Preserve already checkpointed time from releases without hourly check-ins.
+     * @param {ActiveSession} session @returns {ActiveSession}
+     */
+    function withCheckInSchedule(session) {
+        if (session.elapsedMs >= CHECK_IN_INTERVAL_MS) {
+            session.nextCheckInMs =
+                (Math.floor(session.elapsedMs / CHECK_IN_INTERVAL_MS) + 1) * CHECK_IN_INTERVAL_MS;
+        }
+        return session;
     }
 
     /** @returns {PracticeData} */
@@ -550,8 +602,8 @@
             if (previous === null) localStorage.setItem(key, this.pendingBackup);
         },
 
-        /** @param {PracticeData} data */
-        save(data) {
+        /** @param {PracticeData} data @param {string} [failureMessage] */
+        save(data, failureMessage) {
             if (this.readOnly) return false;
             try {
                 const currentRaw = localStorage.getItem(STORAGE_KEY);
@@ -575,7 +627,8 @@
                 return true;
             } catch (error) {
                 return this.fail(
-                    'Practice could not be saved. Your session is still on this page. Keep it open and retry Done when storage is available.'
+                    failureMessage ||
+                        'Practice could not be saved. Your session is still on this page. Keep it open and retry Done when storage is available.'
                 );
             }
         },
@@ -605,6 +658,25 @@
                 dailyData,
                 activeSession: null
             });
+        },
+
+        /** @param {string} dayKey @param {number} milliseconds */
+        setDailyTime(dayKey, milliseconds) {
+            if (this.readOnly || this.data.activeSession) return false;
+            if (
+                !isDayKey(dayKey) ||
+                !isMilliseconds(milliseconds) ||
+                secondsToMilliseconds(milliseconds / 1000) !== milliseconds
+            ) {
+                return this.fail('Enter a valid date and practice duration before saving.');
+            }
+            const dailyData = { ...this.data.dailyData };
+            if (milliseconds === 0) delete dailyData[dayKey];
+            else dailyData[dayKey] = milliseconds / 1000;
+            return this.save(
+                { ...this.data, dailyData },
+                'The corrected time could not be saved. Your changes are still in the dialog. Keep it open and retry Save when storage is available.'
+            );
         },
 
         getDailyData() {
@@ -703,6 +775,97 @@
         }
     };
 
+    const PracticeCheckInView = {
+        /** @type {HTMLElement | null} */
+        banner: null,
+        /** @type {HTMLElement | null} */
+        countdown: null,
+        /** @type {HTMLElement | null} */
+        hour: null,
+        /** @type {HTMLElement | null} */
+        announcement: null,
+        /** @type {HTMLElement | null} */
+        timeoutStatus: null,
+        /** @type {number | null} */
+        lastHour: null,
+        /** @type {number | null} */
+        timeoutElapsedMs: null,
+
+        init() {
+            this.banner = document.getElementById('practiceCheckIn');
+            this.countdown = document.getElementById('checkInCountdown');
+            this.hour = document.getElementById('checkInHour');
+            this.announcement = document.getElementById('checkInAnnouncement');
+            this.timeoutStatus = document.getElementById('practiceTimeoutStatus');
+            document
+                .getElementById('confirmPracticeBtn')
+                ?.addEventListener('click', () => Stopwatch.confirmPractice());
+            document
+                .getElementById('endPracticeBtn')
+                ?.addEventListener('click', () => Stopwatch.done());
+        },
+
+        /** @param {PracticeSnapshot} snapshot */
+        render({ session, now, readOnly }) {
+            if (!this.banner || !this.countdown || !this.hour || !this.announcement) return;
+            const pending = !readOnly && session?.status === 'running' ? session.checkIn : null;
+            const wasVisible = !this.banner.hidden;
+            this.banner.hidden = !pending;
+            if (!pending) {
+                if (wasVisible && this.banner.contains(document.activeElement)) {
+                    const focusButton = document.querySelector('.is-focused .card-focus-button');
+                    const target =
+                        focusButton instanceof HTMLElement
+                            ? focusButton
+                            : session?.status === 'running'
+                              ? StopwatchView.pauseBtn
+                              : StopwatchView.startBtn;
+                    target.focus();
+                }
+                this.lastHour = null;
+                setText(this.announcement, '');
+                return;
+            }
+            const hours = pending.elapsedMs / CHECK_IN_INTERVAL_MS;
+            const hourText = `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+            const seconds = Math.max(
+                0,
+                Math.ceil((pending.timestamp + CHECK_IN_GRACE_MS - now) / 1000)
+            );
+            setText(this.countdown, formatDuration(seconds).slice(3));
+            setText(this.hour, hourText);
+            if (this.lastHour !== pending.elapsedMs) {
+                const minutes = Math.ceil(seconds / 60);
+                setText(
+                    this.announcement,
+                    `Still working? Confirm within ${minutes} ${minutes === 1 ? 'minute' : 'minutes'} to keep practicing. Otherwise, this session ends and saves only through ${hourText}.`
+                );
+                this.lastHour = pending.elapsedMs;
+            }
+        },
+
+        /** @param {number} elapsedMs @param {boolean} saved */
+        showTimeout(elapsedMs, saved) {
+            this.timeoutElapsedMs = elapsedMs;
+            if (!this.timeoutStatus) return;
+            const duration = formatDuration(elapsedMs / 1000);
+            setText(
+                this.timeoutStatus,
+                saved
+                    ? `Session ended after an unanswered check-in. Saved ${duration} of practice; the 15-minute waiting period was excluded.`
+                    : `Session stopped after an unanswered check-in at ${duration}. The waiting period was excluded. Keep this page open and retry Done to save.`
+            );
+            this.timeoutStatus.hidden = false;
+        },
+
+        clearTimeoutNotice() {
+            this.timeoutElapsedMs = null;
+            if (!this.timeoutStatus) return;
+            this.timeoutStatus.hidden = true;
+            setText(this.timeoutStatus, '');
+        }
+    };
+
     // State transitions, persistence, and lifecycle scheduling live here. Views only
     // consume a snapshot; reading or painting the history cannot advance the session.
     const Stopwatch = {
@@ -723,6 +886,7 @@
 
         init() {
             if (!StopwatchView.init()) return;
+            PracticeCheckInView.init();
             StopwatchView.startBtn.addEventListener('click', () => this.start());
             StopwatchView.pauseBtn.addEventListener('click', () => this.pause());
             StopwatchView.doneBtn.addEventListener('click', () => this.done());
@@ -769,8 +933,36 @@
             if (this.running) {
                 try {
                     const previous = this.session;
+                    const nextHour = previous.nextCheckInMs || CHECK_IN_INTERVAL_MS;
+                    let pending = previous.checkIn;
+                    if (
+                        !pending &&
+                        previous.elapsedMs + Math.max(0, now - previous.timestamp) >= nextHour
+                    ) {
+                        const boundary =
+                            previous.timestamp + Math.max(0, nextHour - previous.elapsedMs);
+                        const atHour = advanceSession(previous, boundary);
+                        pending = {
+                            elapsedMs: atHour.elapsedMs,
+                            dailyMs: { ...atHour.dailyMs },
+                            timestamp: boundary
+                        };
+                    }
+                    if (pending && now >= pending.timestamp + CHECK_IN_GRACE_MS) {
+                        this.expireCheckIn(pending, now);
+                        return this.session;
+                    }
                     this.session = advanceSession(previous, now);
+                    if (pending) this.session.checkIn = pending;
                     if (now !== previous.timestamp) this.dirty = true;
+                    // Persist the exact hour and deadline as soon as the banner appears.
+                    if (
+                        pending &&
+                        !previous.checkIn &&
+                        StorageManager.saveActiveSession(this.session)
+                    ) {
+                        this.dirty = false;
+                    }
                 } catch (error) {
                     this.session = { ...this.session, status: 'paused' };
                     this.dirty = true;
@@ -781,6 +973,43 @@
                 }
             }
             return this.session;
+        },
+
+        /** @param {PracticeCheckIn} pending @param {number} now */
+        expireCheckIn(pending, now) {
+            PracticeAudio.clear();
+            this.session = {
+                status: 'paused',
+                elapsedMs: pending.elapsedMs,
+                dailyMs: { ...pending.dailyMs },
+                timestamp: now,
+                nextCheckInMs: pending.elapsedMs + CHECK_IN_INTERVAL_MS
+            };
+            this.dirty = true;
+            if (StorageManager.finishSession(this.session, now)) {
+                this.session = null;
+                this.dirty = false;
+            }
+            PracticeCheckInView.showTimeout(pending.elapsedMs, this.session === null);
+            this.syncTimers();
+        },
+
+        acknowledgeCheckIn() {
+            if (!this.session?.checkIn) return;
+            this.session.nextCheckInMs = this.session.checkIn.elapsedMs + CHECK_IN_INTERVAL_MS;
+            delete this.session.checkIn;
+            this.dirty = true;
+        },
+
+        confirmPractice() {
+            const now = Date.now();
+            const session = this.capture(now);
+            if (session?.checkIn && !StorageManager.readOnly) {
+                this.acknowledgeCheckIn();
+                this.persistCheckpoint(now);
+            }
+            this.syncTimers();
+            this.render(now);
         },
 
         // Reconcile timers rather than restarting them after every focus/action event.
@@ -838,6 +1067,7 @@
         start() {
             if (this.running || StorageManager.readOnly) return;
             const now = Date.now();
+            PracticeCheckInView.clearTimeoutNotice();
             this.session = this.session
                 ? { ...this.session, status: 'running', timestamp: now }
                 : { status: 'running', elapsedMs: 0, dailyMs: {}, timestamp: now };
@@ -852,8 +1082,15 @@
         pause() {
             if (!this.running) return;
             const now = Date.now();
+            const session = this.capture(now);
+            if (!session || session.status !== 'running') {
+                this.render(now);
+                return;
+            }
             PracticeAudio.pause();
-            this.session = { ...this.capture(now), status: 'paused' };
+            // An explicit pause confirms presence without counting the break.
+            this.acknowledgeCheckIn();
+            this.session = { ...this.session, status: 'paused' };
             this.dirty = true;
             this.persistCheckpoint(now);
             this.syncTimers();
@@ -863,15 +1100,22 @@
         done() {
             const now = Date.now();
             const session = this.capture(now);
-            if (!session || session.elapsedMs === 0) return;
+            if (!session || session.elapsedMs === 0) {
+                this.render(now);
+                return;
+            }
             // Sound stops even if saving fails and the session remains available to retry.
             PracticeAudio.clear();
+            this.acknowledgeCheckIn();
             // Finalization remains one write; the views never predict a successful save.
-            this.session = { ...session, status: 'paused' };
+            this.session = { ...this.session, status: 'paused' };
             this.dirty = true;
             if (StorageManager.finishSession(this.session, now)) {
                 this.session = null;
                 this.dirty = false;
+                if (PracticeCheckInView.timeoutElapsedMs !== null) {
+                    PracticeCheckInView.showTimeout(PracticeCheckInView.timeoutElapsedMs, true);
+                }
             }
             this.syncTimers();
             this.render(now);
@@ -881,6 +1125,7 @@
             const now = Date.now();
             const session = this.capture(now);
             if (session) {
+                this.acknowledgeCheckIn();
                 this.session = { ...session, status: 'paused' };
                 this.dirty = true;
             }
@@ -904,6 +1149,7 @@
                 readOnly: StorageManager.readOnly
             };
             StopwatchView.render(snapshot);
+            PracticeCheckInView.render(snapshot);
             PracticeHistory.render(snapshot);
         }
     };
@@ -911,6 +1157,224 @@
     // ============================================================================
     // Practice History View
     // ============================================================================
+
+    const DailyTimeEditor = {
+        /** @type {HTMLDialogElement | null} */
+        dialog: null,
+        /** @type {HTMLFormElement | null} */
+        form: null,
+        /** @type {Record<'hours' | 'minutes' | 'seconds', HTMLInputElement | null>} */
+        inputs: { hours: null, minutes: null, seconds: null },
+        /** @type {HTMLButtonElement | null} */
+        saveButton: null,
+        /** @type {HTMLButtonElement | null} */
+        clearButton: null,
+        /** @type {HTMLButtonElement | null} */
+        cancelButton: null,
+        /** @type {HTMLElement | null} */
+        dateLabel: null,
+        /** @type {HTMLElement | null} */
+        notice: null,
+        /** @type {HTMLElement | null} */
+        status: null,
+        /** @type {string | null} */
+        dayKey: null,
+        /** @type {HTMLButtonElement | null} */
+        opener: null,
+        originalMilliseconds: 0,
+        saveError: '',
+        draftError: '',
+
+        init() {
+            this.dialog = /** @type {HTMLDialogElement | null} */ (
+                document.getElementById('dailyEditDialog')
+            );
+            this.form = /** @type {HTMLFormElement | null} */ (
+                document.getElementById('dailyEditForm')
+            );
+            this.inputs = {
+                hours: /** @type {HTMLInputElement | null} */ (
+                    document.getElementById('dailyEditHours')
+                ),
+                minutes: /** @type {HTMLInputElement | null} */ (
+                    document.getElementById('dailyEditMinutes')
+                ),
+                seconds: /** @type {HTMLInputElement | null} */ (
+                    document.getElementById('dailyEditSeconds')
+                )
+            };
+            this.saveButton = /** @type {HTMLButtonElement | null} */ (
+                document.getElementById('dailyEditSave')
+            );
+            this.clearButton = /** @type {HTMLButtonElement | null} */ (
+                document.getElementById('dailyEditClear')
+            );
+            this.cancelButton = /** @type {HTMLButtonElement | null} */ (
+                document.getElementById('dailyEditCancel')
+            );
+            this.dateLabel = document.getElementById('dailyEditDate');
+            this.notice = document.getElementById('dailyEditNotice');
+            this.status = document.getElementById('dailyEditStatus');
+            if (
+                !this.dialog ||
+                !this.form ||
+                !this.saveButton ||
+                !this.clearButton ||
+                !this.cancelButton ||
+                !this.dateLabel ||
+                !this.notice ||
+                !Object.values(this.inputs).every(Boolean)
+            )
+                return;
+            this.form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                this.save();
+            });
+            this.cancelButton.addEventListener('click', () => this.dialog.close());
+            this.clearButton.addEventListener('click', () => {
+                if (this.blockedReason()) return;
+                for (const input of Object.values(this.inputs)) {
+                    input.value = '0';
+                    setAttribute(input, 'aria-invalid', 'false');
+                }
+                this.draftError = '';
+                this.sync();
+                this.saveButton.focus();
+            });
+            for (const input of Object.values(this.inputs)) {
+                input.addEventListener('input', () => {
+                    setAttribute(input, 'aria-invalid', 'false');
+                    this.draftError = '';
+                    this.sync();
+                });
+            }
+            this.dialog.addEventListener('close', () => {
+                this.dayKey = null;
+                if (
+                    !StorageManager.readOnly &&
+                    this.saveError &&
+                    StorageManager.error === this.saveError
+                ) {
+                    StorageManager.error = '';
+                    StorageManager.showStatus();
+                }
+                this.saveError = '';
+                if (this.opener?.isConnected) this.opener.focus();
+                this.opener = null;
+            });
+        },
+
+        blockedReason() {
+            if (StorageManager.readOnly) return StorageManager.error;
+            if (Stopwatch.session || StorageManager.data.activeSession) {
+                return 'Finish your current session with Done before editing recorded time.';
+            }
+            if (
+                this.dayKey &&
+                Math.round((StorageManager.getDailyData()[this.dayKey] || 0) * 1000) !==
+                    this.originalMilliseconds
+            ) {
+                return 'Recorded time changed while this dialog was open. Cancel and reopen it to edit the updated total.';
+            }
+            return '';
+        },
+
+        /** @param {string} dayKey @param {HTMLButtonElement} opener */
+        open(dayKey, opener) {
+            if (!this.dialog || this.dialog.open) return;
+            this.dayKey = dayKey;
+            this.opener = opener;
+            const milliseconds = Math.round((StorageManager.getDailyData()[dayKey] || 0) * 1000);
+            this.originalMilliseconds = milliseconds;
+            this.inputs.hours.value = String(Math.floor(milliseconds / 3_600_000));
+            this.inputs.minutes.value = String(Math.floor((milliseconds % 3_600_000) / 60_000));
+            this.inputs.seconds.value = String((milliseconds % 60_000) / 1000);
+            for (const input of Object.values(this.inputs)) {
+                setAttribute(input, 'aria-invalid', 'false');
+            }
+            this.draftError = '';
+            setText(
+                this.dateLabel,
+                `${dateLabelFormatter.format(new Date(`${dayKey}T00:00:00Z`))} (${dayKey})`
+            );
+            this.dialog.showModal();
+            this.sync();
+            (this.blockedReason() ? this.cancelButton : this.inputs.hours).focus();
+        },
+
+        sync() {
+            if (!this.dialog?.open) return;
+            const reason = this.blockedReason();
+            for (const input of Object.values(this.inputs)) {
+                if (input.disabled !== Boolean(reason)) input.disabled = Boolean(reason);
+            }
+            setDisabled(this.saveButton, Boolean(reason));
+            setDisabled(this.clearButton, Boolean(reason));
+            const message = reason || this.draftError;
+            setText(this.notice, message);
+            if (this.notice.hidden !== !message) this.notice.hidden = !message;
+        },
+
+        save() {
+            if (!this.dayKey || this.blockedReason()) {
+                this.sync();
+                return;
+            }
+            for (const input of Object.values(this.inputs)) {
+                // Incomplete numeric text can also have an empty value; keep it invalid.
+                if (input.value === '' && !input.validity.badInput) input.value = '0';
+            }
+            const { hours, minutes, seconds } = this.inputs;
+            const secondsMs = Math.round(seconds.valueAsNumber * 1000);
+            const validHours =
+                hours.value !== '' &&
+                Number.isSafeInteger(hours.valueAsNumber) &&
+                hours.valueAsNumber >= 0;
+            const validMinutes =
+                minutes.value !== '' &&
+                Number.isInteger(minutes.valueAsNumber) &&
+                minutes.valueAsNumber >= 0 &&
+                minutes.valueAsNumber < 60;
+            const validSeconds =
+                seconds.value !== '' &&
+                seconds.validity.valid &&
+                Number.isSafeInteger(secondsMs) &&
+                secondsMs >= 0 &&
+                secondsMs < 60_000;
+            const milliseconds =
+                hours.valueAsNumber * 3_600_000 + minutes.valueAsNumber * 60_000 + secondsMs;
+            const safe =
+                isMilliseconds(milliseconds) &&
+                secondsToMilliseconds(milliseconds / 1000) === milliseconds;
+            const invalidTotal = validHours && validMinutes && validSeconds && !safe;
+            setAttribute(hours, 'aria-invalid', String(!validHours || invalidTotal));
+            setAttribute(minutes, 'aria-invalid', String(!validMinutes));
+            setAttribute(seconds, 'aria-invalid', String(!validSeconds));
+            if (!validHours || !validMinutes || !validSeconds || !safe) {
+                this.draftError = invalidTotal
+                    ? 'This duration is too large. Enter a smaller number of hours.'
+                    : 'Enter whole hours, minutes from 0 to 59, and seconds from 0 to 59.999. Values cannot be negative.';
+                this.sync();
+                (!validHours || invalidTotal ? hours : !validMinutes ? minutes : seconds).focus();
+                return;
+            }
+            if (!StorageManager.setDailyTime(this.dayKey, milliseconds)) {
+                this.saveError = StorageManager.error;
+                this.draftError =
+                    StorageManager.error ||
+                    'The corrected time could not be saved. Keep this dialog open and retry Save.';
+                this.sync();
+                return;
+            }
+            if (this.status)
+                setText(
+                    this.status,
+                    `Practice time for ${this.dayKey} ${milliseconds === 0 ? 'cleared' : 'updated'}.`
+                );
+            this.dialog.close();
+            Stopwatch.render(Date.now());
+        }
+    };
 
     const PracticeHistory = {
         /** @type {HTMLElement | null} */
@@ -937,6 +1401,7 @@
         weekMinutes: null,
 
         init() {
+            DailyTimeEditor.init();
             this.todayDisplay = document.getElementById('todayTotal');
             this.weekDisplay = document.getElementById('weekTotal');
             this.dailyList = document.getElementById('dailyList');
@@ -967,7 +1432,21 @@
                     date.className = 'daily-date';
                     const duration = document.createElement('span');
                     duration.className = 'daily-duration';
-                    element.append(date, duration);
+                    const editButton = document.createElement('button');
+                    editButton.type = 'button';
+                    editButton.className = 'daily-edit-button';
+                    editButton.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <circle cx="5" cy="12" r="2" />
+                        <circle cx="12" cy="12" r="2" />
+                        <circle cx="19" cy="12" r="2" />
+                    </svg>`;
+                    editButton.setAttribute('aria-label', `Edit practice time for ${key}`);
+                    editButton.setAttribute('aria-haspopup', 'dialog');
+                    editButton.title = `Edit practice time for ${key}`;
+                    editButton.addEventListener('click', () =>
+                        DailyTimeEditor.open(key, editButton)
+                    );
+                    element.append(date, editButton, duration);
                     row = { element, date, duration, minutes: null };
                 }
                 setText(row.date, formatDateDisplay(key, i));
@@ -980,6 +1459,7 @@
 
         /** @param {PracticeSnapshot} snapshot */
         render({ now, dailyData, session }) {
+            DailyTimeEditor.sync();
             if (!this.todayDisplay || !this.weekDisplay || !this.dailyList) return;
             this.updateCalendar(now);
             const sessionDailyMs = session?.dailyMs || {};
@@ -2114,11 +2594,18 @@
         StorageManager.init();
 
         PracticeHistory.init();
-        Stopwatch.init();
         AudioEngine.init();
         Metronome.init();
         TuningTone.init();
         ChordalStudies.init();
+        Stopwatch.init();
         initCardFocus();
+        if (new URL(window.location.href).searchParams.has('progress-report')) {
+            const link = document.createElement('a');
+            link.className = 'progress-report-return';
+            link.href = 'http://localhost:4178/';
+            link.textContent = 'Progress Report';
+            document.body.append(link);
+        }
     });
 })();

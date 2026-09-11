@@ -50,6 +50,7 @@ initialized on `DOMContentLoaded`; it does not expose its modules as public APIs
 | `StorageManager`                              | Validate/migrate data, preserve originals, detect conflicts, and commit writes      |
 | `Stopwatch`                                   | Own session transitions, capture time, checkpoint data, and schedule lifecycle work |
 | `StopwatchView` / `PracticeHistory`           | Render a shared snapshot through cached elements and date-keyed rows                |
+| `PracticeCheckInView` / `DailyTimeEditor`     | Render hourly check-ins and validate selected-day correction drafts                 |
 | `AudioEngine`                                 | Own shared audio readiness, voice cleanup, interruptions, and teardown              |
 | `PracticeAudio`                               | Capture and restore paused audio settings and playback; clear playback on Done      |
 | `Metronome` / `TuningTone` / `ChordalStudies` | Own feature controls, playback intent, and scheduling/input state                   |
@@ -87,15 +88,17 @@ the default click only when key events are not prevented. Automation that sends
 untrusted key events likewise cannot establish native Enter/Space behavior.
 Keep that distinction when reporting verification results.
 
-| Test file                                                | Coverage                                                             |
-| -------------------------------------------------------- | -------------------------------------------------------------------- |
-| [practice.test.mjs](tests/practice.test.mjs)             | Sessions, validated storage, migration, failures, and conflicts      |
-| [calendar.test.mjs](tests/calendar.test.mjs)             | Local dates, midnight allocation, DST, and retained windows          |
-| [audio.test.mjs](tests/audio.test.mjs)                   | Shared readiness, timing, cancellation, and voice cleanup            |
-| [practice-audio.test.mjs](tests/practice-audio.test.mjs) | Timer/audio coordination, pause restoration, and completion cleanup  |
-| [rendering.test.mjs](tests/rendering.test.mjs)           | DOM reuse, exact minute totals, and page lifecycle scheduling        |
-| [controls.test.mjs](tests/controls.test.mjs)             | Numeric input, semantic controls, piano ownership, status, and rings |
-| [docs.test.mjs](tests/docs.test.mjs)                     | Relative documentation links and Markdown heading anchors            |
+| Test file                                                | Coverage                                                                    |
+| -------------------------------------------------------- | --------------------------------------------------------------------------- |
+| [practice.test.mjs](tests/practice.test.mjs)             | Sessions, validated storage, migration, failures, and conflicts             |
+| [check-in.test.mjs](tests/check-in.test.mjs)             | Hourly deadlines, sleep/reload, rollback, audio cleanup, and failed saves   |
+| [daily-editor.test.mjs](tests/daily-editor.test.mjs)     | Selected-day corrections, draft validation, session guards, and save safety |
+| [calendar.test.mjs](tests/calendar.test.mjs)             | Local dates, midnight allocation, DST, and retained windows                 |
+| [audio.test.mjs](tests/audio.test.mjs)                   | Shared readiness, timing, cancellation, and voice cleanup                   |
+| [practice-audio.test.mjs](tests/practice-audio.test.mjs) | Timer/audio coordination, pause restoration, and completion cleanup         |
+| [rendering.test.mjs](tests/rendering.test.mjs)           | DOM reuse, exact minute totals, and page lifecycle scheduling               |
+| [controls.test.mjs](tests/controls.test.mjs)             | Numeric input, semantic controls, piano ownership, status, and rings        |
+| [docs.test.mjs](tests/docs.test.mjs)                     | Relative documentation links and Markdown heading anchors                   |
 
 ## Regression expectations
 
@@ -125,8 +128,21 @@ policy, so change its expectations only with an explicit policy decision.
   `running` or `paused` status, integer `elapsedMs`, per-date `dailyMs`, and a
   wall-clock checkpoint `timestamp`. Completed `dailyData` remains in seconds,
   including fractions; each day's fraction is preserved when a session finishes.
-- Running sessions continue across a closed page or reload. Paused sessions do
-  not accrue time, but their accrued practice remains visible in history.
+- Optional v2 fields `nextCheckInMs` and `checkIn` preserve hourly protection.
+  `nextCheckInMs` is the next whole elapsed-hour threshold; the default is one hour.
+  Pending `checkIn: { elapsedMs, dailyMs, timestamp }` freezes the exact hour's
+  duration, allocations, and wall-clock trigger. Validate this metadata on restore.
+  Older checkpoints already at or beyond one hour retain their accrued time and
+  start checks at their next upcoming whole hour.
+- Each active hour requires confirmation within 15 wall-clock minutes. Confirmation
+  and Pause before expiry retain actual elapsed time and acknowledge the check;
+  Done before expiry also retains actual elapsed time. At expiry, save only the
+  frozen hour snapshot and stop audio. A failed save leaves that snapshot paused
+  for retry without adding the grace period or double-counting.
+- Running sessions catch up across a closed page or reload subject to the original
+  check-in deadline. Closed/suspended pages enforce expiry when execution resumes;
+  a late confirmation must not revive the session. Paused sessions do not accrue
+  time, but their accrued practice remains visible in history.
   Actions and lifecycle checkpoints capture current time independently of the
   display interval. Backwards clock adjustments never subtract accrued time;
   forward wall-clock adjustments count as elapsed time.
@@ -159,6 +175,12 @@ policy, so change its expectations only with an explicit policy decision.
   Dirty paused checkpoints also retry on page hiding/unload. A failed unload save
   requests a browser warning, but browsers may suppress it; keep the page open
   when the storage notice reports unsaved practice.
+- Day correction requires no running or paused session. On Save, normalize empty
+  fields to zero; incomplete numeric input remains invalid. Validate nonnegative
+  whole hours, minutes 0–59, seconds 0–59.999, and a safe integer-millisecond total. Clear
+  changes the draft only; Save commits only the selected date (zero removes its
+  record), retaining all other dates. Cancel/Escape never write. Save failures keep
+  the draft open, and the usual backup/conflict/read-only rules still apply.
 - Use one timer tab at a time. Storage events and comparison with the last
   observed raw record detect stale data, pause the local timer, and block further
   writes until reload. Unsaved local time stays visible for review. These checks
@@ -194,13 +216,16 @@ policy, so change its expectations only with an explicit policy decision.
   and active time before flooring minutes, and sum daily milliseconds before
   flooring the weekly total; fractions must not delay a minute boundary.
 - Hidden pages stop painting but retain five-second running-session checkpoints.
+  Those checkpoints also enforce check-in expiry.
   Visible idle/paused pages check the calendar at the next local midnight, with
   a maximum one-minute recheck interval for clock/timezone changes. These checks
   do not accrue paused time or write storage.
-- Focus and visibility restoration refresh without saving. Page hiding for
+- Focus and visibility restoration ordinarily refresh without saving; crossing a
+  check-in boundary persists its snapshot, and an expired deadline finalizes it.
+  Actions check expiry before applying their own state change. Page hiding for
   navigation (`pagehide`) checkpoints and cancels timer/calendar callbacks;
   `pageshow` catches up and restores only the required timers, without duplicates.
-  The running-session clock policy is unchanged, and audio does not auto-restart.
+  Reload preserves pending deadlines, and audio does not auto-restart.
 
 ## Audio lifecycle and timing rules
 
@@ -208,7 +233,7 @@ policy, so change its expectations only with an explicit policy decision.
   stopping all tools with their normal short releases. Start consumes that
   in-memory snapshot only if the timer remains running after its storage check;
   a synchronous conflict must not restart sound. A fresh Start leaves independent
-  audio untouched. Done stops all tools and discards the snapshot before saving,
+  audio untouched. Done and check-in expiry stop all tools and discard the snapshot before saving,
   including on save failure; it preserves selected settings. No audio state is
   persisted with practice history.
 - Restoring a pause replaces changes made during the break and starts the

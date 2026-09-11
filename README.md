@@ -36,15 +36,30 @@ older-version compatibility has not been verified.
 There is no separate Reset button. Done becomes available for any positive
 duration, including a session shorter than one displayed second.
 
-Running sessions continue counting while the page is closed and catch up on
-return. Paused sessions also restore, but do not accrue more time. Pause or finish
-the session before leaving if you do not want the closed-page interval counted.
+After each hour of active practice, a **Still working?** banner gives you 15 minutes
+to choose **Yes, still practicing**. Confirming keeps the elapsed time; the next
+check is at the next session hour. If time runs out, the session ends, all audio
+stops, and only practice through the hour that triggered the banner is saved.
+For example, an unanswered check at `01:00:00` saves one hour, excluding the
+15-minute grace period. **Pause**, **Done**, or **Done for now** before the deadline
+keeps the actual elapsed time; Pause also acknowledges that check.
+
+Running sessions catch up on return, subject to that same deadline. A closed or
+suspended page cannot finish until the browser runs it again, but reopening does
+not restart the grace period. Paused sessions restore without accruing more time.
 
 History includes the accrued active session, even while paused. It shows today
 and the previous six local calendar days, splitting practice at local midnight.
 History displays whole minutes: less than a minute appears as `0m`, without
 discarding the saved seconds. The seven-day total is calculated before rounding
 down, so it can exceed the sum of the individually rounded daily labels.
+
+To correct a recorded day, finish the current session with Done, then use the
+day's **…** button. It appears on hover or keyboard focus and stays visible on
+touch devices. Edit hours, minutes, and seconds (up to three decimal places), then
+choose **Save**. Empty fields count as zero. **Clear day** sets the draft to zero;
+Save applies it. Cancel or Escape discards the draft. Only the selected day's
+recorded total changes.
 
 ## Audio tools
 
@@ -140,7 +155,9 @@ Saving is not guaranteed if the browser blocks storage or a write fails.
 
 - **Save failed:** keep the page open. Done leaves the unsaved session paused and
   available for retry. Retry Done when storage works again; do not clear site
-  data or reload as a first troubleshooting step.
+  data or reload as a first troubleshooting step. A failed automatic completion
+  similarly keeps only the hour snapshot paused for retry. A failed day correction
+  keeps its dialog open; retry Save.
 - **Data changed in another tab:** this tab pauses and blocks stale writes.
   Record any unsaved local time outside the app and review both tabs before
   reloading. Reload replaces this tab's state with the saved record and can

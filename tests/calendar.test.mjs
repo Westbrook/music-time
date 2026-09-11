@@ -326,21 +326,17 @@ for (const { transition, start, now, date, seconds } of [
         seconds: 90_000
     }
 ]) {
-    test(`a restored session uses the actual length of the ${transition} DST day`, async (t) => {
+    test(`hourly confirmed practice uses the actual length of the ${transition} DST day`, async (t) => {
         useTimeZone(t, 'America/New_York');
-        const app = await createApp(t, {
-            now,
-            storedData: {
-                version: 2,
-                dailyData: {},
-                activeSession: {
-                    status: 'running',
-                    elapsedMs: 0,
-                    dailyMs: {},
-                    timestamp: Date.parse(start)
-                }
-            }
-        });
+        const app = await createApp(t, { now: start });
+        app.click('startBtn');
+        for (let elapsed = 3_600_000; elapsed <= seconds * 1000; elapsed += 3_600_000) {
+            app.clock.setSystemTime(Date.parse(start) + elapsed);
+            app.fire(app.window, 'focus');
+            assert.equal(app.element('practiceCheckIn').hidden, false);
+            app.click('confirmPracticeBtn');
+        }
+        assert.equal(app.clock.now, Date.parse(now));
         app.click('doneBtn');
 
         assert.deepEqual(app.storage.readSaved().dailyData, { [date]: seconds });

@@ -625,7 +625,7 @@ test('expired daily allocations do not prevent safe finalization of a paused ses
     });
 });
 
-test('long absences preserve elapsed time while bounding per-day allocation to seven days', async (t) => {
+test('long absences cap forgotten practice and expire allocations older than seven days', async (t) => {
     useTimeZone(t, 'UTC');
     const app = await createApp(t, {
         storedData: {
@@ -639,14 +639,13 @@ test('long absences preserve elapsed time while bounding per-day allocation to s
             }
         }
     });
-    assert.equal(app.element('stopwatchDisplay').textContent, '600:00:00');
-    app.click('doneBtn');
-
-    const dailyData = app.storage.readSaved().dailyData;
-    assert.equal(Object.keys(dailyData).length, 7);
-    assert.equal(dailyData['2026-08-19'], undefined);
-    assert.equal(dailyData['2026-08-20'], 86_400);
-    assert.equal(dailyData['2026-08-26'], 43_200);
+    assert.equal(app.element('stopwatchDisplay').textContent, '00:00:00');
+    assert.equal(app.element('practiceCheckIn').hidden, true);
+    assert.deepEqual(app.storage.readSaved(), {
+        version: 2,
+        dailyData: {},
+        activeSession: null
+    });
 });
 
 test('timer ticks preserve unchanged history rows and avoid storage reads', async (t) => {

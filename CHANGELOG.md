@@ -7,6 +7,11 @@ release number; storage schema version 2 is a data format, not a release label.
 
 ### Reliability and data
 
+- Added a Still working? check after every active hour, with a 15-minute deadline.
+  Unanswered checks end the session and save only through the triggering hour;
+  the deadline survives reload and sleep, and failed saves keep that hour for retry.
+- Preserved previously accrued time in older checkpoints, applying the first check
+  at their next upcoming whole hour.
 - Added deterministic regression tests, linting, JavaScript type checks, shared
   formatting, pinned development tools, and read-only CI checks.
 - Validated and versioned stored data; preserved original records before upgrades
@@ -35,6 +40,9 @@ release number; storage schema version 2 is a data format, not a release label.
 
 ### Controls and documentation
 
+- Added a per-day **…** editor for recorded hours, minutes, and fractional seconds.
+  Clear changes the draft until Save; corrections require a finished session and
+  preserve other days, with errors and conflicts keeping unsaved changes visible.
 - Unified whole-number tempo, meter, and volume handling, including editable
   invalid drafts and consistent commit behavior.
 - Replaced piano key divs with named native buttons, chromatic focus navigation,
