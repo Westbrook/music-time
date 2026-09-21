@@ -20,8 +20,8 @@ npm run check
 `npm run check` runs ESLint, TypeScript's JavaScript checks, Prettier, and the test
 suite. The same command runs on pushes and pull requests in the
 [quality workflow](.github/workflows/quality.yml). The workflow has read-only repository permissions
-and does not deploy the application. CI also runs `npm run build` to verify that
-the static publication folder can be generated.
+and only runs quality checks. Builds and publication run locally through
+`npm run deploy`.
 
 Other useful commands:
 
@@ -60,7 +60,7 @@ Source quality checks exclude pushes to the generated `gh-pages` branch.
 
 Treat `gh-pages` as generated output: deployment replaces its files with the
 current build while retaining its Git history. Keep source changes on a source
-branch. The quality workflow performs checks and packaging only; publication is
+branch. The quality workflow performs checks only; publication is
 an explicit `npm run deploy` action. Do not publish the repository root or copy
 `.progress-report/`, documentation, development dependencies, or local configuration
 into `dist/`.

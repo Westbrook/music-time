@@ -56,6 +56,9 @@ After the first deployment creates the branch, open the repository's
 The expected site address is [westbrook.github.io/music-time](https://westbrook.github.io/music-time/).
 Later `npm run deploy` runs update that branch and trigger publication.
 
+Builds and pushes run locally through `npm run deploy`; this project has no custom
+GitHub Actions build or publishing workflow.
+
 The build excludes development tools, documentation, and progress-report data.
 Practice history stays in each browser: localhost history does not transfer to
 the GitHub Pages address. See [saved data and recovery](#saved-data-and-recovery).
