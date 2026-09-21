@@ -1,0 +1,10 @@
+{
+    "schemaVersion": 1,
+    "projectId": "trombone-practice-timer",
+    "reportWorkspace": "/Users/westbrook/.codex/visualizations/2026/09/11/01a09135-7d76-7eb1-9f76-b3c2975740b7/practice-progress-report",
+    "stateLocation": "/Users/westbrook/.codex/visualizations/2026/09/11/01a09135-7d76-7eb1-9f76-b3c2975740b7/practice-progress-report/data/project.json",
+    "reportUrl": "http://localhost:4178/",
+    "apps": {
+        "local": "http://localhost:8000/"
+    }
+}

@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+        <meta name="color-scheme" content="light dark" />
+        <title>Trombone Practice Timer</title>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <div class="app-icon">
+                    <svg
+                        viewBox="0 0 60 60"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                        focusable="false"
+                    >
+                        <rect width="60" height="60" rx="13" fill="url(#iconGradient)" />
+                        <path
+                            d="M15 25 L20 25 L35 15 L45 15 L45 45 L35 45 L20 35 L15 35 Z"
+                            fill="white"
+                            opacity="0.95"
+                        />
+                        <circle cx="42" cy="30" r="3" fill="white" opacity="0.9" />
+                        <defs>
+                            <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color: #007aff; stop-opacity: 1" />
+                                <stop offset="100%" style="stop-color: #0051d5; stop-opacity: 1" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1>Trombone Practice Timer</h1>
+                <p class="app-subtitle">Professional Practice Companion</p>
+            </header>
+
+            <p id="audioStatus" class="audio-status" role="status" aria-atomic="true" hidden></p>
+
+            <aside
+                id="practiceCheckIn"
+                class="practice-check-in"
+                aria-labelledby="checkInHeading"
+                hidden
+            >
+                <div>
+                    <h2 id="checkInHeading">Still working?</h2>
+                    <p>
+                        Confirm you're still practicing. Otherwise, this session will end and save
+                        only through <strong id="checkInHour"></strong> of practice.
+                    </p>
+                </div>
+                <div class="check-in-actions">
+                    <span
+                        id="checkInCountdown"
+                        class="check-in-countdown"
+                        role="timer"
+                        aria-live="off"
+                        aria-label="Time left to confirm, minutes:seconds"
+                        >15:00</span
+                    >
+                    <button type="button" id="confirmPracticeBtn" class="btn btn-primary">
+                        Yes, still practicing
+                    </button>
+                    <button type="button" id="endPracticeBtn" class="btn btn-secondary">
+                        Done for now
+                    </button>
+                </div>
+            </aside>
+            <p
+                id="checkInAnnouncement"
+                class="visually-hidden"
+                role="status"
+                aria-atomic="true"
+            ></p>
+            <p
+                id="practiceTimeoutStatus"
+                class="storage-status"
+                role="status"
+                aria-atomic="true"
+                hidden
+            ></p>
+
+            <main>
+                <!-- Practice Stopwatch Section -->
+                <section class="card stopwatch-section" aria-labelledby="practiceHeading">
+                    <h2 id="practiceHeading">Practice Timer</h2>
+                    <div class="card-body">
+                        <div class="timer-container">
+                            <svg
+                                class="timer-ring"
+                                viewBox="0 0 200 200"
+                                aria-hidden="true"
+                                focusable="false"
+                            >
+                                <!-- Hours ring (outermost, up to 8 hours) -->
+                                <circle class="timer-ring-bg" cx="100" cy="100" r="92" />
+                                <circle
+                                    class="timer-ring-progress ring-hours"
+                                    cx="100"
+                                    cy="100"
+                                    r="92"
+                                    pathLength="1"
+                                    id="ringHours"
+                                />
+
+                                <!-- Minutes ring -->
+                                <circle class="timer-ring-bg" cx="100" cy="100" r="85" />
+                                <circle
+                                    class="timer-ring-progress ring-minutes"
+                                    cx="100"
+                                    cy="100"
+                                    r="85"
+                                    pathLength="1"
+                                    id="ringMinutes"
+                                />
+
+                                <!-- Seconds ring (innermost) -->
+                                <circle class="timer-ring-bg" cx="100" cy="100" r="78" />
+                                <circle
+                                    class="timer-ring-progress ring-seconds"
+                                    cx="100"
+                                    cy="100"
+                                    r="78"
+                                    pathLength="1"
+                                    id="ringSeconds"
+                                />
+                            </svg>
+                            <div
+                                class="stopwatch-display"
+                                id="stopwatchDisplay"
+                                role="timer"
+                                aria-live="off"
+                                aria-label="Elapsed practice time, hours:minutes:seconds"
+                            >
+                                00:00:00
+                            </div>
+                        </div>
+                        <p class="timer-hint">
+                            Pause stops sound; Start restores it. Done saves your session and clears
+                            playback.
+                        </p>
+                        <p class="control-hint">
+                            Rings, inside out: 60 seconds, 60 minutes, 8 hours. Seconds and minutes
+                            repeat; hours stay full after 8. Elapsed time keeps counting.
+                        </p>
+                        <p
+                            id="practiceStatus"
+                            class="visually-hidden"
+                            role="status"
+                            aria-atomic="true"
+                        ></p>
+                        <p
+                            id="storageStatus"
+                            class="storage-status"
+                            role="status"
+                            aria-atomic="true"
+                            hidden
+                        ></p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="controls">
+                            <button type="button" id="startBtn" class="btn btn-primary">
+                                Start
+                            </button>
+                            <button type="button" id="pauseBtn" class="btn btn-secondary" disabled>
+                                Pause
+                            </button>
+                            <button type="button" id="doneBtn" class="btn btn-success" disabled>
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Practice History Section -->
+                <section class="card history-section" aria-labelledby="historyHeading">
+                    <h2 id="historyHeading">Practice History</h2>
+                    <div class="card-body">
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <svg
+                                    class="stat-ring stat-ring-concentric"
+                                    viewBox="0 0 120 120"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                >
+                                    <!-- Hours ring (outer) -->
+                                    <circle class="stat-ring-bg" cx="60" cy="60" r="52" />
+                                    <circle
+                                        class="stat-ring-progress stat-ring-hours"
+                                        cx="60"
+                                        cy="60"
+                                        r="52"
+                                        pathLength="1"
+                                        id="todayRing"
+                                    />
+                                    <!-- Minutes ring (inner) -->
+                                    <circle
+                                        class="stat-ring-bg stat-ring-bg-inner"
+                                        cx="60"
+                                        cy="60"
+                                        r="44"
+                                    />
+                                    <circle
+                                        class="stat-ring-progress stat-ring-minutes"
+                                        cx="60"
+                                        cy="60"
+                                        r="44"
+                                        pathLength="1"
+                                        id="todayMinutesRing"
+                                    />
+                                </svg>
+                                <div class="stat-content">
+                                    <div class="stat-label">Today</div>
+                                    <div class="stat-value" id="todayTotal">0h 0m</div>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <svg
+                                    class="stat-ring stat-ring-concentric"
+                                    viewBox="0 0 120 120"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                >
+                                    <!-- Days ring (outer, up to 7 completed 24-hour days) -->
+                                    <circle class="stat-ring-bg" cx="60" cy="60" r="52" />
+                                    <circle
+                                        class="stat-ring-progress stat-ring-days"
+                                        cx="60"
+                                        cy="60"
+                                        r="52"
+                                        pathLength="1"
+                                        id="weekDaysRing"
+                                    />
+                                    <!-- Hours ring (middle) -->
+                                    <circle class="stat-ring-bg" cx="60" cy="60" r="44" />
+                                    <circle
+                                        class="stat-ring-progress stat-ring-hours"
+                                        cx="60"
+                                        cy="60"
+                                        r="44"
+                                        pathLength="1"
+                                        id="weekRing"
+                                    />
+                                    <!-- Minutes ring (inner) -->
+                                    <circle
+                                        class="stat-ring-bg stat-ring-bg-inner"
+                                        cx="60"
+                                        cy="60"
+                                        r="36"
+                                    />
+                                    <circle
+                                        class="stat-ring-progress stat-ring-minutes"
+                                        cx="60"
+                                        cy="60"
+                                        r="36"
+                                        pathLength="1"
+                                        id="weekMinutesRing"
+                                    />
+                                </svg>
+                                <div class="stat-content">
+                                    <div class="stat-label">7-Day Total</div>
+                                    <div class="stat-value" id="weekTotal">0h 0m</div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="control-hint">
+                            Rings, inside out: Today—60 minutes, 8 hours. 7-day total—60 minutes, 24
+                            hours, 7 days. Minutes and weekly hours repeat; outer rings stay full.
+                            Display scales, not practice goals; totals keep counting.
+                        </p>
+                        <div class="daily-breakdown">
+                            <h3>Last 7 Days</h3>
+                            <ul id="dailyList" class="daily-list" role="list"></ul>
+                        </div>
+                        <p
+                            id="dailyEditStatus"
+                            class="visually-hidden"
+                            role="status"
+                            aria-atomic="true"
+                        ></p>
+                    </div>
+                </section>
+
+                <!-- Metronome Section -->
+                <form
+                    id="metronomeForm"
+                    class="card metronome-section"
+                    aria-labelledby="metronomeHeading"
+                    novalidate
+                >
+                    <h2 id="metronomeHeading">Metronome</h2>
+                    <div class="card-body">
+                        <div class="bpm-container">
+                            <div class="bpm-display" id="bpmDisplay">120</div>
+                            <div class="bpm-label">BPM</div>
+                        </div>
+                        <div class="control-group">
+                            <div class="input-group">
+                                <label for="bpmSlider">Tempo (BPM):</label>
+                                <input
+                                    type="range"
+                                    id="bpmSlider"
+                                    min="40"
+                                    max="240"
+                                    value="120"
+                                    step="1"
+                                    aria-describedby="tempoHint"
+                                />
+                                <label for="bpmInput" class="visually-hidden"
+                                    >Tempo value (BPM)</label
+                                >
+                                <input
+                                    type="number"
+                                    id="bpmInput"
+                                    min="40"
+                                    max="240"
+                                    step="1"
+                                    value="120"
+                                    aria-describedby="tempoHint"
+                                />
+                            </div>
+                            <p id="tempoHint" class="control-hint">40–240 BPM, in whole numbers.</p>
+                            <div class="input-group">
+                                <label for="beatsPerMeasure">Beats per measure:</label>
+                                <input
+                                    type="number"
+                                    id="beatsPerMeasure"
+                                    min="1"
+                                    max="16"
+                                    step="1"
+                                    value="4"
+                                    aria-describedby="meterHint"
+                                />
+                            </div>
+                            <p id="meterHint" class="control-hint">1–16 beats, in whole numbers.</p>
+                            <div class="input-group">
+                                <label for="metronomeVolume">Metronome volume:</label>
+                                <input
+                                    type="range"
+                                    id="metronomeVolume"
+                                    min="0"
+                                    max="100"
+                                    value="70"
+                                    step="1"
+                                />
+                                <span id="metronomeVolumeDisplay">70%</span>
+                            </div>
+                        </div>
+                        <div class="beat-indicator" id="beatIndicator" aria-hidden="true"></div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="controls">
+                            <button type="submit" id="metronomeBtn" class="btn btn-primary">
+                                Start Metronome
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Tuning Tone Generator Section -->
+                <form id="toneForm" class="card tuner-section" aria-labelledby="tunerHeading">
+                    <h2 id="tunerHeading">Tuning Tone</h2>
+                    <div class="card-body">
+                        <div class="tone-display">
+                            <div class="note-display" id="noteDisplay">F3</div>
+                            <div class="freq-display" id="freqDisplay">174.61 Hz</div>
+                        </div>
+                        <div class="control-group">
+                            <div class="input-group">
+                                <label for="noteSelect">Note:</label>
+                                <select id="noteSelect">
+                                    <option value="C">C</option>
+                                    <option value="C#">C#/Db</option>
+                                    <option value="D">D</option>
+                                    <option value="D#">D#/Eb</option>
+                                    <option value="E">E</option>
+                                    <option value="F" selected>F</option>
+                                    <option value="F#">F#/Gb</option>
+                                    <option value="G">G</option>
+                                    <option value="G#">G#/Ab</option>
+                                    <option value="A">A</option>
+                                    <option value="A#">A#/Bb</option>
+                                    <option value="B">B</option>
+                                </select>
+                                <label for="octaveSelect">Octave:</label>
+                                <select id="octaveSelect">
+                                    <option value="2">2</option>
+                                    <option value="3" selected>3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="volumeSlider">Tone volume:</label>
+                                <input
+                                    type="range"
+                                    id="volumeSlider"
+                                    min="0"
+                                    max="100"
+                                    value="50"
+                                    step="1"
+                                />
+                                <span id="volumeDisplay">50%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="controls">
+                            <button type="submit" id="toneBtn" class="btn btn-primary">
+                                Start Tone
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Chordal Studies Section -->
+                <section class="card chordal-section" aria-labelledby="chordalHeading">
+                    <h2 id="chordalHeading">Chordal Studies</h2>
+                    <div class="card-body">
+                        <div class="chord-controls">
+                            <div class="input-group">
+                                <label for="instrumentSelect">Waveform:</label>
+                                <select id="instrumentSelect">
+                                    <option value="sine">Sine</option>
+                                    <option value="triangle">Triangle</option>
+                                    <option value="square">Square</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="chordVolumeSlider">Chord volume:</label>
+                                <input
+                                    type="range"
+                                    id="chordVolumeSlider"
+                                    min="0"
+                                    max="100"
+                                    value="50"
+                                    step="1"
+                                />
+                                <span id="chordVolumeDisplay">50%</span>
+                            </div>
+                        </div>
+                        <p id="keyboardHelp" class="keyboard-help">
+                            Tab to a keyboard. Use Left/Right arrows, Home, or End to choose a note;
+                            Enter or Space to play. Escape anywhere in Chordal Studies stops all
+                            chord notes. Scroll sideways to reach more notes on a small screen.
+                        </p>
+                        <div class="keyboard-group">
+                            <h3 id="holdHeading" class="keyboard-label">Hold</h3>
+                            <p id="holdHelp" class="keyboard-help">
+                                Click, tap, or activate a note to toggle it on or off.
+                            </p>
+                            <div class="keyboard-container">
+                                <div
+                                    id="pianoKeyboardHold"
+                                    class="piano-keyboard"
+                                    role="group"
+                                    aria-labelledby="holdHeading"
+                                    aria-describedby="keyboardHelp holdHelp"
+                                ></div>
+                            </div>
+                        </div>
+                        <div class="keyboard-group">
+                            <h3 id="momentaryHeading" class="keyboard-label">Momentary</h3>
+                            <p id="momentaryHelp" class="keyboard-help">
+                                Hold a note with a pointer, Enter, or Space; release to stop.
+                                Click-only assistive activation plays a brief note.
+                            </p>
+                            <div class="keyboard-container">
+                                <div
+                                    id="pianoKeyboardMomentary"
+                                    class="piano-keyboard"
+                                    role="group"
+                                    aria-labelledby="momentaryHeading"
+                                    aria-describedby="keyboardHelp momentaryHelp"
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="controls">
+                            <button type="button" id="stopNotesBtn" class="btn btn-secondary">
+                                Stop chord notes
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <footer>
+                <p>Practice makes progress! 🎵</p>
+            </footer>
+        </div>
+
+        <dialog
+            id="dailyEditDialog"
+            class="daily-edit-dialog"
+            aria-labelledby="dailyEditHeading"
+            aria-describedby="dailyEditDate dailyEditHelp"
+        >
+            <form id="dailyEditForm" novalidate>
+                <h2 id="dailyEditHeading">Edit practice time</h2>
+                <p id="dailyEditDate" class="daily-edit-date"></p>
+                <p id="dailyEditHelp" class="control-hint">
+                    Set the total recorded time for this day. Clear sets it to zero; Save applies
+                    your changes.
+                </p>
+                <div class="daily-edit-fields">
+                    <div class="input-group">
+                        <label for="dailyEditHours">Hours</label>
+                        <input id="dailyEditHours" type="number" min="0" step="1" />
+                    </div>
+                    <div class="input-group">
+                        <label for="dailyEditMinutes">Minutes</label>
+                        <input id="dailyEditMinutes" type="number" min="0" max="59" step="1" />
+                    </div>
+                    <div class="input-group">
+                        <label for="dailyEditSeconds">Seconds</label>
+                        <input
+                            id="dailyEditSeconds"
+                            type="number"
+                            min="0"
+                            max="59.999"
+                            step="0.001"
+                        />
+                    </div>
+                </div>
+                <p
+                    id="dailyEditNotice"
+                    class="daily-edit-notice"
+                    role="alert"
+                    aria-atomic="true"
+                    hidden
+                ></p>
+                <div class="daily-edit-actions">
+                    <button id="dailyEditClear" type="button" class="btn btn-danger">
+                        Clear day
+                    </button>
+                    <button id="dailyEditCancel" type="button" class="btn btn-secondary">
+                        Cancel
+                    </button>
+                    <button id="dailyEditSave" type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </dialog>
+
+        <script src="script.js"></script>
+    </body>
+</html>
