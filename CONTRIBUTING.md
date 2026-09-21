@@ -53,6 +53,11 @@ working under `/music-time/`; no root-relative asset paths or router fallback ar
 needed. `.nojekyll` bypasses Jekyll processing, and the deployment command includes
 dotfiles so it reaches the published branch.
 
+[scripts/clean-pages.cjs](scripts/clean-pages.cjs) removes inherited repository
+files, including hidden files, from the publisher's temporary checkout before
+committing. It refuses to publish if anything outside the public bundle remains.
+Source quality checks exclude pushes to the generated `gh-pages` branch.
+
 Treat `gh-pages` as generated output: deployment replaces its files with the
 current build while retaining its Git history. Keep source changes on a source
 branch. The quality workflow performs checks and packaging only; publication is

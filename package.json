@@ -8,7 +8,7 @@
     "scripts": {
         "build": "node scripts/build.mjs",
         "predeploy": "npm run check && npm run build",
-        "deploy": "gh-pages --dist dist --branch gh-pages --remote origin --dotfiles",
+        "deploy": "gh-pages --dist dist --branch gh-pages --remote origin --dotfiles --before-add ./scripts/clean-pages.cjs",
         "check": "npm run lint && npm run typecheck && npm run format:check && npm test",
         "lint": "eslint . --max-warnings=0",
         "typecheck": "tsc --project tsconfig.json",
