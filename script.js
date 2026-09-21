@@ -732,11 +732,12 @@
             return true;
         },
 
-        /** @param {number} elapsedMs */
-        renderTitle(elapsedMs) {
-            const title = document.hidden
-                ? `${formatDuration(elapsedMs / 1000)} | ${this.pageTitle}`
-                : this.pageTitle;
+        /** @param {ActiveSession | null} session */
+        renderTitle(session) {
+            const title =
+                document.hidden && session
+                    ? `${formatDuration(session.elapsedMs / 1000)} | ${this.pageTitle}`
+                    : this.pageTitle;
             if (document.title !== title) document.title = title;
         },
 
@@ -1162,7 +1163,7 @@
 
         render(now) {
             if (!this.pageActive) return;
-            StopwatchView.renderTitle(this.session?.elapsedMs || 0);
+            StopwatchView.renderTitle(this.session);
             if (document.hidden) return;
             /** @type {PracticeSnapshot} */
             const snapshot = {

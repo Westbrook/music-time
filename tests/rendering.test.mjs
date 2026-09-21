@@ -442,7 +442,7 @@ for (const status of ['idle', 'paused']) {
             }
         });
         const pageTitle = app.document.title;
-        const hiddenTitle = `${status === 'paused' ? '00:00:30' : '00:00:00'} | ${pageTitle}`;
+        const hiddenTitle = status === 'paused' ? `00:00:30 | ${pageTitle}` : pageTitle;
         const originalToday = rowsByDate(app).get('2026-08-26');
         const writes = app.storage.writes.length;
         app.setHidden(true);
@@ -480,7 +480,7 @@ test('ending a paused session resets its hidden title and keeps schedulers stopp
     assert.equal(app.document.title, `00:00:02 | ${pageTitle}`);
     app.click('doneBtn');
 
-    assert.equal(app.document.title, `00:00:00 | ${pageTitle}`);
+    assert.equal(app.document.title, pageTitle);
     assert.equal(app.storage.readSaved().activeSession, null);
     assert.equal(app.clock.countTimers(), 0);
     app.setHidden(false);
@@ -495,7 +495,7 @@ test('an expired check-in resets the hidden title and stops its updates', async 
     app.clock.setSystemTime(app.clock.now + 75 * 60_000);
     app.clock.tick(1_000);
 
-    assert.equal(app.document.title, `00:00:00 | ${pageTitle}`);
+    assert.equal(app.document.title, pageTitle);
     assert.equal(app.storage.readSaved().activeSession, null);
     assert.equal(app.clock.countTimers(), 0);
 });

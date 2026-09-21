@@ -246,7 +246,9 @@ policy, so change its expectations only with an explicit policy decision.
 - Hidden pages stop painting the timer and history but update the title once per
   second while running, using captured elapsed time. Visibility changes update
   the title immediately and restore the original page title on return. Paused
-  and idle hidden pages display their fixed duration without a title interval.
+  hidden pages display their fixed duration without a title interval. Idle pages
+  keep the original title; successfully saving and ending a session restores it
+  immediately, including check-in expiry.
   Five-second running-session checkpoints remain active; both callbacks enforce
   check-in expiry. Browser-delayed callbacks catch up from wall-clock time.
   Visible idle/paused pages check the calendar at the next local midnight, with

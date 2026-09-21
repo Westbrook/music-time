@@ -74,9 +74,10 @@ the GitHub Pages address. See [saved data and recovery](#saved-data-and-recovery
 There is no separate Reset button. Done becomes available for any positive
 duration, including a session shorter than one displayed second.
 
-When you switch to another browser tab, the page title shows elapsed session time,
-such as `00:24:30 | Trombone Practice Timer`. Returning to the tab restores the
-normal title. Paused time stays fixed; Done resets it to zero.
+When you switch to another browser tab during a running or paused session, the
+page title shows elapsed session time, such as `00:24:30 | Trombone Practice Timer`.
+Paused time stays fixed. Returning to the tab or finishing the session restores
+the normal title; idle tabs keep the normal title.
 
 After each hour of active practice, a **Still working?** banner gives you 15 minutes
 to choose **Yes, still practicing**. Confirming keeps the elapsed time; the next
