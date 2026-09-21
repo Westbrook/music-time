@@ -358,19 +358,26 @@ for (const change of ['clock', 'time zone']) {
 
 test('hidden pages freeze timer visuals but continue periodic running checkpoints', async (t) => {
     const app = await createApp(t);
+    const pageTitle = app.document.title;
     app.click('startBtn');
     app.clock.tick(1_250);
+    assert.equal(app.document.title, pageTitle);
     app.setHidden(true);
     const readMutations = observeMutations(t, app);
     const displayAtHide = app.element('stopwatchDisplay').textContent;
     const rows = rowsByDate(app);
     const writesAtHide = app.storage.writes.length;
     assert.equal(app.storage.readSaved().activeSession.elapsedMs, 1_250);
-    assert.equal(app.clock.countTimers(), 1, 'Only the running-session save timer remains');
+    assert.equal(app.document.title, `00:00:01 | ${pageTitle}`);
+    assert.equal(app.clock.countTimers(), 2, 'Only title updates and running-session saves remain');
 
-    app.clock.tick(10_000);
+    app.clock.tick(1_000);
+    assert.equal(app.document.title, `00:00:02 | ${pageTitle}`);
+    assert.equal(app.storage.writes.length, writesAtHide);
+    app.clock.tick(9_000);
 
     assert.deepEqual(readMutations(), []);
+    assert.equal(app.document.title, `00:00:11 | ${pageTitle}`);
     assert.equal(app.element('stopwatchDisplay').textContent, displayAtHide);
     assertSameRows(app, rows);
     assert.equal(app.storage.writes.length - writesAtHide, 2);
@@ -380,12 +387,40 @@ test('hidden pages freeze timer visuals but continue periodic running checkpoint
 
     const writesBeforeShow = app.storage.writes.length;
     app.setHidden(false);
+    assert.equal(app.document.title, pageTitle);
     assert.equal(app.element('stopwatchDisplay').textContent, '00:00:11');
     assert.equal(app.storage.writes.length, writesBeforeShow);
     app.clock.tick(800);
     assert.equal(app.element('stopwatchDisplay').textContent, '00:00:12');
     app.click('pauseBtn');
     assert.equal(app.storage.readSaved().activeSession.elapsedMs, 12_050);
+});
+
+test('hidden titles catch up from wall-clock time without duplicating prefixes after tab switches', async (t) => {
+    const app = await createApp(t);
+    const pageTitle = app.document.title;
+    app.click('startBtn');
+    app.clock.tick(250);
+    app.setHidden(true);
+    assert.equal(app.document.title, `00:00:00 | ${pageTitle}`);
+    const writesAtHide = app.storage.writes.length;
+
+    app.clock.setSystemTime(app.clock.now + 24 * 60_000 + 29_000);
+    app.clock.tick(1_000);
+
+    assert.equal(app.document.title, `00:24:30 | ${pageTitle}`);
+    assert.equal(app.storage.writes.length, writesAtHide);
+    for (let i = 0; i < 3; i++) {
+        app.setHidden(false);
+        assert.equal(app.document.title, pageTitle);
+        app.setHidden(true);
+        assert.equal(app.document.title, `00:24:30 | ${pageTitle}`);
+        assert.equal(app.clock.countTimers(), 2);
+    }
+    app.clock.tick(1_000);
+    assert.equal(app.document.title, `00:24:31 | ${pageTitle}`);
+    app.setHidden(false);
+    assert.equal(app.document.title, pageTitle);
 });
 
 for (const status of ['idle', 'paused']) {
@@ -406,16 +441,21 @@ for (const status of ['idle', 'paused']) {
                         : null
             }
         });
+        const pageTitle = app.document.title;
+        const hiddenTitle = `${status === 'paused' ? '00:00:30' : '00:00:00'} | ${pageTitle}`;
         const originalToday = rowsByDate(app).get('2026-08-26');
         const writes = app.storage.writes.length;
         app.setHidden(true);
+        assert.equal(app.document.title, hiddenTitle);
         const readMutations = observeMutations(t, app);
         assert.equal(app.clock.countTimers(), 0);
 
         app.clock.tick(86_400_000);
         assert.deepEqual(readMutations(), []);
+        assert.equal(app.document.title, hiddenTitle);
         app.setHidden(false);
 
+        assert.equal(app.document.title, pageTitle);
         assert.equal(app.element('dailyList').firstElementChild.dataset.date, '2026-08-27');
         assert.equal(rowsByDate(app).get('2026-08-26'), originalToday);
         assert.equal(app.element('todayTotal').textContent, '0m');
@@ -427,6 +467,61 @@ for (const status of ['idle', 'paused']) {
         assert.equal(app.storage.writes.length, writes);
     });
 }
+
+test('ending a paused session resets its hidden title and keeps schedulers stopped', async (t) => {
+    const app = await createApp(t);
+    const pageTitle = app.document.title;
+    app.click('startBtn');
+    app.clock.tick(2_250);
+    app.click('pauseBtn');
+    app.setHidden(true);
+    assert.equal(app.document.title, `00:00:02 | ${pageTitle}`);
+    app.clock.tick(60_000);
+    assert.equal(app.document.title, `00:00:02 | ${pageTitle}`);
+    app.click('doneBtn');
+
+    assert.equal(app.document.title, `00:00:00 | ${pageTitle}`);
+    assert.equal(app.storage.readSaved().activeSession, null);
+    assert.equal(app.clock.countTimers(), 0);
+    app.setHidden(false);
+    assert.equal(app.document.title, pageTitle);
+});
+
+test('an expired check-in resets the hidden title and stops its updates', async (t) => {
+    const app = await createApp(t);
+    const pageTitle = app.document.title;
+    app.click('startBtn');
+    app.setHidden(true);
+    app.clock.setSystemTime(app.clock.now + 75 * 60_000);
+    app.clock.tick(1_000);
+
+    assert.equal(app.document.title, `00:00:00 | ${pageTitle}`);
+    assert.equal(app.storage.readSaved().activeSession, null);
+    assert.equal(app.clock.countTimers(), 0);
+});
+
+test('pagehide stops hidden title updates and pageshow resumes one title timer', async (t) => {
+    const app = await createApp(t);
+    const pageTitle = app.document.title;
+    app.click('startBtn');
+    app.clock.tick(1_250);
+    app.setHidden(true);
+    app.fire(app.window, 'pagehide');
+    assert.equal(app.clock.countTimers(), 0);
+    const titleAtHide = app.document.title;
+    const writesAtHide = app.storage.writes.length;
+    app.clock.tick(5_000);
+
+    assert.equal(app.document.title, titleAtHide);
+    assert.equal(app.storage.writes.length, writesAtHide);
+    for (let i = 0; i < 3; i++) app.fire(app.window, 'pageshow');
+    assert.equal(app.document.title, `00:00:06 | ${pageTitle}`);
+    assert.equal(app.clock.countTimers(), 2);
+    app.clock.tick(1_000);
+    assert.equal(app.document.title, `00:00:07 | ${pageTitle}`);
+    app.setHidden(false);
+    assert.equal(app.document.title, pageTitle);
+});
 
 test('pagehide clears all schedulers and repeated pageshow resumes just one of each', async (t) => {
     const app = await createApp(t);

@@ -705,8 +705,10 @@
         status: null,
         /** @type {string | null} */
         lastState: null,
+        pageTitle: '',
 
         init() {
+            this.pageTitle = document.title;
             this.display = document.getElementById('stopwatchDisplay');
             this.status = document.getElementById('practiceStatus');
             this.startBtn = /** @type {HTMLButtonElement | null} */ (
@@ -728,6 +730,14 @@
                 return false;
             }
             return true;
+        },
+
+        /** @param {number} elapsedMs */
+        renderTitle(elapsedMs) {
+            const title = document.hidden
+                ? `${formatDuration(elapsedMs / 1000)} | ${this.pageTitle}`
+                : this.pageTitle;
+            if (document.title !== title) document.title = title;
         },
 
         /** @param {PracticeSnapshot} snapshot */
@@ -876,6 +886,8 @@
         /** @type {number | null} */
         intervalId: null,
         /** @type {number | null} */
+        titleIntervalId: null,
+        /** @type {number | null} */
         saveIntervalId: null,
         /** @type {number | null} */
         calendarTimerId: null,
@@ -915,8 +927,10 @@
                 this.syncTimers(true);
             });
             document.addEventListener('visibilitychange', () => {
-                if (document.hidden) this.checkpoint();
-                else this.refresh();
+                if (document.hidden) {
+                    this.checkpoint();
+                    this.render(Date.now());
+                } else this.refresh();
                 this.syncTimers(true);
             });
             window.addEventListener('focus', () => {
@@ -1021,6 +1035,13 @@
             } else if (!painting && this.intervalId !== null) {
                 clearInterval(this.intervalId);
                 this.intervalId = null;
+            }
+            const updatingTitle = timing && document.hidden;
+            if (updatingTitle && this.titleIntervalId === null) {
+                this.titleIntervalId = setInterval(() => this.refresh(), 1000);
+            } else if (!updatingTitle && this.titleIntervalId !== null) {
+                clearInterval(this.titleIntervalId);
+                this.titleIntervalId = null;
             }
             if (timing && this.saveIntervalId === null) {
                 this.saveIntervalId = setInterval(() => {
@@ -1140,7 +1161,9 @@
         },
 
         render(now) {
-            if (!this.pageActive || document.hidden) return;
+            if (!this.pageActive) return;
+            StopwatchView.renderTitle(this.session?.elapsedMs || 0);
+            if (document.hidden) return;
             /** @type {PracticeSnapshot} */
             const snapshot = {
                 now,

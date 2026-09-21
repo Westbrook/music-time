@@ -25,6 +25,41 @@ Audio; saving requires localStorage. Audio restrictions do not disable the timer
 and storage problems are reported separately on the page. There are no polyfills;
 older-version compatibility has not been verified.
 
+## Publish to GitHub Pages
+
+Use Node 24.16.0 and install development tools with `npm ci --ignore-scripts`.
+`npm run build` creates a ready-to-publish `dist/` folder containing only
+`index.html`, `styles.css`, `script.js`, and `.nojekyll`. It packages the static
+files without compilation. Preview it with:
+
+```sh
+npm run build
+python3 -m http.server 8001 --bind 127.0.0.1 --directory dist
+```
+
+Open [the packaged app](http://127.0.0.1:8001/). When ready to publish, run:
+
+```sh
+npm run deploy
+```
+
+This runs all quality checks, rebuilds `dist/`, and commits and pushes its contents
+to the `gh-pages` branch of `origin` (`Westbrook/music-time`). It uses your existing
+Git credentials and commit identity. The source checkout stays on its current
+branch; the deployed files reflect the current working tree, including uncommitted
+changes. Commit source changes separately to preserve their history.
+
+After the first deployment creates the branch, open the repository's
+[Pages settings](https://github.com/Westbrook/music-time/settings/pages) and choose
+**Deploy from a branch → gh-pages → / (root)**, then **Save**. These are GitHub's
+[branch publishing settings](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
+The expected site address is [westbrook.github.io/music-time](https://westbrook.github.io/music-time/).
+Later `npm run deploy` runs update that branch and trigger publication.
+
+The build excludes development tools, documentation, and progress-report data.
+Practice history stays in each browser: localhost history does not transfer to
+the GitHub Pages address. See [saved data and recovery](#saved-data-and-recovery).
+
 ## Practice workflow
 
 1. Choose **Start** to begin.
@@ -35,6 +70,10 @@ older-version compatibility has not been verified.
 
 There is no separate Reset button. Done becomes available for any positive
 duration, including a session shorter than one displayed second.
+
+When you switch to another browser tab, the page title shows elapsed session time,
+such as `00:24:30 | Trombone Practice Timer`. Returning to the tab restores the
+normal title. Paused time stays fixed; Done resets it to zero.
 
 After each hour of active practice, a **Still working?** banner gives you 15 minutes
 to choose **Yes, still practicing**. Confirming keeps the elapsed time; the next

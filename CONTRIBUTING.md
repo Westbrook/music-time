@@ -20,7 +20,8 @@ npm run check
 `npm run check` runs ESLint, TypeScript's JavaScript checks, Prettier, and the test
 suite. The same command runs on pushes and pull requests in the
 [quality workflow](.github/workflows/quality.yml). The workflow has read-only repository permissions
-and does not deploy the application.
+and does not deploy the application. CI also runs `npm run build` to verify that
+the static publication folder can be generated.
 
 Other useful commands:
 
@@ -31,11 +32,33 @@ Other useful commands:
 | `npm run typecheck`    | Check browser API and application types without generating files |
 | `npm run format:check` | Check formatting without modifying files                         |
 | `npm run format`       | Apply the shared formatting rules                                |
+| `npm run build`        | Package public runtime files into `dist/`                        |
+| `npm run deploy`       | Check, build, and push `dist/` to `origin/gh-pages`              |
 
 To run one area, use a test file directly, for example
 `node --test tests/controls.test.mjs`. The commands and locked development
 dependencies are defined in [package.json](package.json) and
 [package-lock.json](package-lock.json).
+
+## Publishing
+
+Follow the [GitHub Pages setup](README.md#publish-to-github-pages) for the first
+publication. Publishing uses the pinned [gh-pages tool](https://github.com/tschaub/gh-pages)
+with existing Git authentication; no token is stored in the project.
+`predeploy` runs `npm run check` and `npm run build` before any deployment push.
+
+[scripts/build.mjs](scripts/build.mjs) recreates `dist/` using an explicit public-file
+list. Update that list when adding runtime assets. Relative asset URLs must keep
+working under `/music-time/`; no root-relative asset paths or router fallback are
+needed. `.nojekyll` bypasses Jekyll processing, and the deployment command includes
+dotfiles so it reaches the published branch.
+
+Treat `gh-pages` as generated output: deployment replaces its files with the
+current build while retaining its Git history. Keep source changes on a source
+branch. The quality workflow performs checks and packaging only; publication is
+an explicit `npm run deploy` action. Do not publish the repository root or copy
+`.progress-report/`, documentation, development dependencies, or local configuration
+into `dist/`.
 
 ## Application structure
 
@@ -215,8 +238,12 @@ policy, so change its expectations only with an explicit policy decision.
   changed minute totals update duration text and statistic rings. Sum completed
   and active time before flooring minutes, and sum daily milliseconds before
   flooring the weekly total; fractions must not delay a minute boundary.
-- Hidden pages stop painting but retain five-second running-session checkpoints.
-  Those checkpoints also enforce check-in expiry.
+- Hidden pages stop painting the timer and history but update the title once per
+  second while running, using captured elapsed time. Visibility changes update
+  the title immediately and restore the original page title on return. Paused
+  and idle hidden pages display their fixed duration without a title interval.
+  Five-second running-session checkpoints remain active; both callbacks enforce
+  check-in expiry. Browser-delayed callbacks catch up from wall-clock time.
   Visible idle/paused pages check the calendar at the next local midnight, with
   a maximum one-minute recheck interval for clock/timezone changes. These checks
   do not accrue paused time or write storage.
