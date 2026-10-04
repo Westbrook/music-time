@@ -18,12 +18,20 @@ export default [
         languageOptions: { globals: globals.node }
     },
     {
-        files: ['script.js'],
+        files: ['script.js', 'install.js'],
         languageOptions: {
             sourceType: 'script',
             ecmaVersion: 2022,
             globals: globals.browser
         }
+    },
+    {
+        files: ['tests/browser/*.spec.mjs'],
+        languageOptions: { globals: globals.browser }
+    },
+    {
+        files: ['sw.js'],
+        languageOptions: { globals: { ...globals.serviceworker, __PRECACHE_FILES__: 'readonly' } }
     },
     {
         rules: {

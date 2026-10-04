@@ -4,37 +4,29 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
         <meta name="color-scheme" content="light dark" />
+        <meta name="apple-mobile-web-app-title" content="Practice Timer" />
+        <meta name="application-name" content="Practice Timer" />
+        <meta
+            name="description"
+            content="Your daily practice companion: timer, history, metronome, tuning tones, and chord keyboards."
+        />
+        <meta name="app-build" content="development" />
         <title>Trombone Practice Timer</title>
+        <link rel="manifest" href="manifest.json" />
+        <link rel="icon" type="image/svg+xml" href="icons/app.svg" />
+        <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
         <link rel="stylesheet" href="styles.css" />
     </head>
     <body>
         <div class="container">
             <header>
                 <div class="app-icon">
-                    <svg
-                        viewBox="0 0 60 60"
-                        xmlns="http://www.w3.org/2000/svg"
-                        aria-hidden="true"
-                        focusable="false"
-                    >
-                        <rect width="60" height="60" rx="13" fill="url(#iconGradient)" />
-                        <path
-                            d="M15 25 L20 25 L35 15 L45 15 L45 45 L35 45 L20 35 L15 35 Z"
-                            fill="white"
-                            opacity="0.95"
-                        />
-                        <circle cx="42" cy="30" r="3" fill="white" opacity="0.9" />
-                        <defs>
-                            <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color: #007aff; stop-opacity: 1" />
-                                <stop offset="100%" style="stop-color: #0051d5; stop-opacity: 1" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
+                    <img src="icons/app.svg" width="60" height="60" alt="" />
                 </div>
                 <h1>Trombone Practice Timer</h1>
                 <p class="app-subtitle">Professional Practice Companion</p>
@@ -495,6 +487,30 @@
 
             <footer>
                 <p>Practice makes progress! 🎵</p>
+                <details class="install-guide" id="installGuide">
+                    <summary>Install Practice Timer</summary>
+                    <p>
+                        Keep your practice tools on your Home Screen and open them without browser
+                        tabs or an address bar.
+                    </p>
+                    <ol>
+                        <li>
+                            On iPad or iPhone, open this page in Safari and tap
+                            <strong>Share</strong> (it may be inside the More menu).
+                        </li>
+                        <li>
+                            Choose <strong>Add to Home Screen</strong>. If shown, leave
+                            <strong>Open as Web App</strong> on, then tap <strong>Add</strong>.
+                        </li>
+                        <li>Launch <strong>Practice Timer</strong> from your Home Screen.</li>
+                    </ol>
+                    <p>On other devices, use your browser’s Install app option when available.</p>
+                    <p>
+                        Practice history stays in the browser or installed app where it was
+                        recorded; existing Safari history may not appear in the installed app.
+                    </p>
+                </details>
+                <p id="offlineStatus" class="offline-status" role="status" hidden></p>
             </footer>
         </div>
 
@@ -551,5 +567,6 @@
         </dialog>
 
         <script src="script.js"></script>
+        <script src="install.js"></script>
     </body>
 </html>

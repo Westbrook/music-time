@@ -5,8 +5,9 @@ import { dirname, join } from 'node:path';
 import test from 'node:test';
 import Git from 'gh-pages/lib/git.js';
 import cleanPages from '../scripts/clean-pages.cjs';
+import assets from '../scripts/public-files.cjs';
 
-const publicFiles = ['.nojekyll', 'index.html', 'script.js', 'styles.css'];
+const publicFiles = ['.nojekyll', ...assets].sort();
 
 async function createCheckout(t) {
     const cwd = await mkdtemp(join(tmpdir(), 'practice-pages-test-'));
@@ -22,6 +23,7 @@ async function createCheckout(t) {
         '.progress-report/project.json',
         '.nvmrc',
         'docs/.hidden/nested.txt',
+        'icons/private.txt',
         'package.json'
     ];
     for (const file of sourceFiles) {
@@ -41,7 +43,10 @@ test('Pages cleanup removes inherited dotdirectories and preserves only the publ
 
     await cleanPages(git);
 
-    assert.deepEqual((await readdir(git.cwd)).sort(), ['.git', ...publicFiles].sort());
+    assert.deepEqual(
+        (await readdir(git.cwd)).sort(),
+        [...new Set(['.git', ...publicFiles.map((file) => file.split('/')[0])])].sort()
+    );
     assert.equal(await readFile(join(git.cwd, '.git/HEAD'), 'utf8'), head);
     for (const file of publicFiles) {
         assert.equal(

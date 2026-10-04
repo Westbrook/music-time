@@ -14,10 +14,13 @@
         "typecheck": "tsc --project tsconfig.json",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "test": "node --test tests/*.test.mjs"
+        "test": "node --test tests/*.test.mjs",
+        "icons": "node scripts/generate-icons.mjs",
+        "test:browser": "npm run build && playwright test"
     },
     "devDependencies": {
         "@eslint/js": "10.0.1",
+        "@playwright/test": "1.63.0",
         "@sinonjs/fake-timers": "15.4.0",
         "eslint": "10.9.1",
         "gh-pages": "6.3.0",

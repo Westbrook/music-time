@@ -29,8 +29,8 @@ older-version compatibility has not been verified.
 
 Use Node 24.16.0 and install development tools with `npm ci --ignore-scripts`.
 `npm run build` creates a ready-to-publish `dist/` folder containing only
-`index.html`, `styles.css`, `script.js`, and `.nojekyll`. It packages the static
-files without compilation. Preview it with:
+the HTML, styles, scripts, manifest, icons, service worker, and `.nojekyll`.
+It stamps the offline shell with a content hash, without compiling the app. Preview it with:
 
 ```sh
 npm run build
@@ -62,6 +62,43 @@ GitHub Actions build or publishing workflow.
 The build excludes development tools, documentation, and progress-report data.
 Practice history stays in each browser: localhost history does not transfer to
 the GitHub Pages address. See [saved data and recovery](#saved-data-and-recovery).
+
+## Install on iPad, iPhone, or desktop
+
+In Safari on iPad or iPhone, choose **Share → Add to Home Screen** (Share may be
+inside the More menu). Leave **Open as Web App** enabled if shown, then tap **Add**.
+Launch **Practice Timer** from its Home Screen icon for a standalone window without
+browser tabs or an address bar. iPadOS controls the system status bar and multitasking;
+this does not force kiosk mode or lock the orientation. See
+[Apple’s installation guide](https://support.apple.com/guide/ipad/open-as-web-app-ipad8f1f7a29/ipados).
+Other browsers can expose their own **Install app** command.
+
+The manifest has a stable relative identity, start URL, and scope, so hosting at
+`/` or `/music-time/` works. Launching from the icon starts at the app home without
+preview query parameters. Icons include SVG and 32px favicons, an opaque 180px Apple
+touch icon, 192px/512px app icons, and a separate full-bleed 512px maskable icon.
+Regenerate PNG exports from `icons/app.svg` with `npm run icons` after installing
+the pinned Chromium binary with `npx playwright install chromium`.
+
+For offline use, serve **the built `dist/` folder over HTTPS** (localhost also works).
+Wait for **Ready for offline practice** once while online. The service worker caches
+only the public app shell; timer, history, and synthesized audio then work without
+a connection. Storage can still be cleared or evicted by the browser. Practice
+history stays in localStorage and is not part of the shell cache. An installed app
+may have separate storage from Safari; installation does not migrate existing history.
+
+Updates download in the background and wait for all app windows to close before
+activation. Reopen after closing them to use the update; no automatic reload interrupts
+a session. Offline use remains on the last successfully cached version. Source previews
+(skip the build) deliberately do not register a service worker, keeping edits visible.
+A previously installed worker on the same origin can still control a source preview;
+use a different port or unregister it in browser developer tools when switching modes.
+
+Run `npm run test:browser` for Chromium and WebKit checks of the built app at both
+root and subpath URLs, offline relaunch, update lifecycle, and responsive layout.
+Install their pinned binaries first with `npx playwright install chromium webkit`.
+A physical iPad is still needed to verify the OS Home Screen installation, icon crop,
+status bar, Split View, and audio behavior after suspension.
 
 ## Practice workflow
 
