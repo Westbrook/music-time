@@ -1,0 +1,35 @@
+{
+    "id": "./",
+    "name": "Trombone Practice Timer",
+    "short_name": "Practice Timer",
+    "description": "Track daily practice with a timer, practice history, metronome, tuning tones, and chord keyboards.",
+    "lang": "en",
+    "dir": "ltr",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#f2f2f7",
+    "theme_color": "#f2f2f7",
+    "categories": ["music", "education", "productivity"],
+    "icons": [
+        {
+            "src": "icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "prefer_related_applications": false
+}

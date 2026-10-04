@@ -2627,7 +2627,7 @@
         if (new URL(window.location.href).searchParams.has('progress-report')) {
             const link = document.createElement('a');
             link.className = 'progress-report-return';
-            link.href = 'http://localhost:4178/';
+            link.href = 'http://localhost:4186/';
             link.textContent = 'Progress Report';
             document.body.append(link);
         }
